@@ -1,0 +1,29 @@
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+
+# IDE/Editor files
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+*~
+
+# Downloaded data
+test_data/benchmark/*.osm
+test_data/benchmark/*.gz
+data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+*.tmp
+benchmark_results.txt
