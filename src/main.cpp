@@ -10,6 +10,7 @@
 // multi-threading
 // modern cpp refurbishment
 // instead of using Cmake. try to use bazel to do the same thing! 
+// avoid using void* as a way to express generic
 
 
 using namespace hdmap;
