@@ -76,7 +76,7 @@ struct Lane {
     double speedLimit_;  // m/s
     BoundingBox bbox_;
     
-    Lane() : id_(0), type_(LaneType::DRIVING), speedLimit_(0.0) {}
+    Lane() : id_{0}, type_{LaneType::DRIVING}, speedLimit_{0.0} {}
     
     void computeBoundingBox();
 };
@@ -88,7 +88,7 @@ struct TrafficLight {
     std::vector<uint64_t> controlledLaneIds_;
     double height_;  // meters above ground
     
-    TrafficLight() : id_(0), state_(TrafficLightState::UNKNOWN), height_(0.0) {}
+    TrafficLight() : id_{0}, state_{TrafficLightState::UNKNOWN}, height_{0.0} {}
 };
 
 struct TrafficSign {
@@ -99,14 +99,14 @@ struct TrafficSign {
     std::vector<uint64_t> affectedLaneIds_;
     double height_;  // meters above ground
     
-    TrafficSign() : id_(0), type_(TrafficSignType::OTHER), height_(0.0) {}
+    TrafficSign() : id_{0}, type_{TrafficSignType::OTHER}, height_{0.0} {}
 };
 
 // Map query result structures
 struct QueryResult {
-    std::vector<const Lane*> lanes_;
-    std::vector<const TrafficLight*> trafficLights_;
-    std::vector<const TrafficSign*> trafficSigns_;
+    std::vector<std::shared_ptr<Lane>> lanes_;
+    std::vector<std::shared_ptr<TrafficLight>> trafficLights_;
+    std::vector<std::shared_ptr<TrafficSign>> trafficSigns_;
     
     void clear() {
         lanes_.clear();

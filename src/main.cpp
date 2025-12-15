@@ -3,10 +3,13 @@
 #include <iomanip>
 
 // yiliang 
-// use smart pointer instead of raw pointers
+// use smart pointer instead of raw pointers (move huge memory consumption from stack to heap, 
+// would that result in the change of the size of the iamge)
 // try to find the hotspot and try to optimize this program in terms of 
 // runtime and memory usage!
+// multi-threading
 // modern cpp refurbishment
+// instead of using Cmake. try to use bazel to do the same thing! 
 
 
 using namespace hdmap;
@@ -19,7 +22,7 @@ void printQueryResult(const QueryResult& result) {
     
     if (!result.lanes_.empty()) {
         std::cout << "\n  Lane Details:\n";
-        for (const auto* lane : result.lanes_) {
+        for (auto lane : result.lanes_) {
             std::cout << "    ID: " << lane->id_ 
                      << ", Points: " << lane->centerline_.size()
                      << ", Speed Limit: " << (lane->speedLimit_ * 3.6) << " km/h\n";
@@ -27,7 +30,30 @@ void printQueryResult(const QueryResult& result) {
     }
 }
 
+void printStackLimit() {
+    struct rlimit limit;
+    
+    if (getrlimit(RLIMIT_STACK, &limit) == 0) {
+        std::cout << "Stack size limit:\n";
+        
+        if (limit.rlim_cur == RLIM_INFINITY) {
+            std::cout << "  Current (soft): unlimited\n";
+        } else {
+            std::cout << "  Current (soft): " 
+                      << (limit.rlim_cur / 1024 / 1024) << " MB\n";
+        }
+        
+        if (limit.rlim_max == RLIM_INFINITY) {
+            std::cout << "  Maximum (hard): unlimited\n";
+        } else {
+            std::cout << "  Maximum (hard): " 
+                      << (limit.rlim_max / 1024 / 1024) << " MB\n";
+        }
+    }
+}
+
 int main(int argc, char** argv) {
+    printStackLimit();
     std::cout << "=== HD Map Server Demo ===\n\n";
     
     // Create map server with default constraints
@@ -75,7 +101,7 @@ int main(int argc, char** argv) {
     Point2D position(25, 25);
     auto closestLane = mapServer.getClosestLane(position);
     if (closestLane.has_value()) {
-        const Lane* lane = closestLane.value();
+        auto lane = closestLane.value();
         std::cout << "  Found lane ID: " << lane->id_ << "\n";
         std::cout << "  Points in centerline: " << lane->centerline_.size() << "\n";
     } else {

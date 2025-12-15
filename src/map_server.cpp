@@ -10,6 +10,7 @@
 // that principle?
 // perfect forwarding
 // do profiling, learn how to set up profiling tool
+// set up google benchmark to do more meaning runtime test
 
 namespace hdmap {
 
@@ -42,23 +43,23 @@ void MapServer::buildSpatialIndices() {
     // Build lane index
     laneIndex_.clear();
     for (auto& [id, lane] : lanes_) {
-        lane.computeBoundingBox();
+        lane->computeBoundingBox();
         // looks pretty fishy here, I got to say! 
-        laneIndex_.insert(lane.bbox_, &lane);
+        laneIndex_.insert(lane->bbox_, lane.get());
     }
     
     // Build traffic light index
     trafficLightIndex_.clear();
     for (auto& [id, light] : trafficLights_) {
-        BoundingBox bbox(light.position_, light.position_);
-        trafficLightIndex_.insert(bbox, &light);
+        BoundingBox bbox(light->position_, light->position_);
+        trafficLightIndex_.insert(bbox, light.get());
     }
     
     // Build traffic sign index
     trafficSignIndex_.clear();
     for (auto& [id, sign] : trafficSigns_) {
-        BoundingBox bbox(sign.position_, sign.position_);
-        trafficSignIndex_.insert(bbox, &sign);
+        BoundingBox bbox(sign->position_, sign->position_);
+        trafficSignIndex_.insert(bbox, sign.get());
     }
 }
 
@@ -69,24 +70,24 @@ QueryResult MapServer::queryRegion(const BoundingBox& region) const {
     std::vector<void*> laneResults;
     laneIndex_.query(region, laneResults);
     for (void* ptr : laneResults) {
-
-        result.lanes_.push_back(static_cast<const Lane*>(ptr));
+        result.lanes_.push_back(std::shared_ptr<Lane>{static_cast<Lane*>(ptr)});
     }
     
     // Query traffic lights
     std::vector<void*> lightResults;
     trafficLightIndex_.query(region, lightResults);
     for (void* ptr : lightResults) {
-        result.trafficLights_.push_back(static_cast<const TrafficLight*>(ptr));
+        result.trafficLights_.push_back(std::shared_ptr<TrafficLight>{static_cast<TrafficLight*>(ptr)});
     }
     
     // Query traffic signs
     std::vector<void*> signResults;
     trafficSignIndex_.query(region, signResults);
     for (void* ptr : signResults) {
-        result.trafficSigns_.push_back(static_cast<const TrafficSign*>(ptr));
+        result.trafficSigns_.push_back(std::shared_ptr<TrafficSign>{static_cast<TrafficSign*>(ptr)});
     }
     
+    // return value optimization
     return result;
 }
 
@@ -97,7 +98,7 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
     std::vector<void*> laneResults;
     laneIndex_.queryRadius(center, radius, laneResults);
     for (void* ptr : laneResults) {
-        const Lane* lane = static_cast<const Lane*>(ptr);
+        auto lane{std::shared_ptr<Lane>(static_cast<Lane*>(ptr))};
         // Double-check distance for accuracy
         bool withinRadius = false;
         for (const auto& point : lane->centerline_) {
@@ -113,9 +114,10 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
     
     // Query traffic lights
     std::vector<void*> lightResults;
+    // here needs to be changed as well
     trafficLightIndex_.queryRadius(center, radius, lightResults);
     for (void* ptr : lightResults) {
-        const TrafficLight* light = static_cast<const TrafficLight*>(ptr);
+        auto light{std::shared_ptr<TrafficLight>(static_cast<TrafficLight*>(ptr))};
         if (center.distanceTo(light->position_) <= radius) {
             result.trafficLights_.push_back(light);
         }
@@ -125,7 +127,8 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
     std::vector<void*> signResults;
     trafficSignIndex_.queryRadius(center, radius, signResults);
     for (void* ptr : signResults) {
-        const TrafficSign* sign = static_cast<const TrafficSign*>(ptr);
+        auto sign{std::shared_ptr<TrafficSign>(static_cast<TrafficSign*>(ptr))};
+        
         if (center.distanceTo(sign->position_) <= radius) {
             result.trafficSigns_.push_back(sign);
         }
@@ -134,7 +137,7 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
     return result;
 }
 
-std::optional<Lane> MapServer::getLaneById(uint64_t laneId) const {
+std::optional<std::shared_ptr<Lane>> MapServer::getLaneById(uint64_t laneId) const {
     auto it = lanes_.find(laneId);
     if (it != lanes_.end()) {
         return it->second;
@@ -142,7 +145,7 @@ std::optional<Lane> MapServer::getLaneById(uint64_t laneId) const {
     return std::nullopt;
 }
 
-std::optional<TrafficLight> MapServer::getTrafficLightById(uint64_t id) const {
+std::optional<std::shared_ptr<TrafficLight>> MapServer::getTrafficLightById(uint64_t id) const {
     auto it = trafficLights_.find(id);
     if (it != trafficLights_.end()) {
         return it->second;
@@ -150,7 +153,7 @@ std::optional<TrafficLight> MapServer::getTrafficLightById(uint64_t id) const {
     return std::nullopt;
 }
 
-std::optional<TrafficSign> MapServer::getTrafficSignById(uint64_t id) const {
+std::optional<std::shared_ptr<TrafficSign>> MapServer::getTrafficSignById(uint64_t id) const {
     auto it = trafficSigns_.find(id);
     if (it != trafficSigns_.end()) {
         return it->second;
@@ -158,15 +161,15 @@ std::optional<TrafficSign> MapServer::getTrafficSignById(uint64_t id) const {
     return std::nullopt;
 }
 
-std::vector<const Lane*> MapServer::getNearbyLanes(const Point2D& position, double maxDistance) const {
+std::vector<std::shared_ptr<Lane>> MapServer::getNearbyLanes(const Point2D& position, double maxDistance) const {
     QueryResult result = queryRadius(position, maxDistance);
     return result.lanes_;
 }
 
-std::optional<const Lane*> MapServer::getClosestLane(const Point2D& position) const {
+std::optional<std::shared_ptr<Lane>> MapServer::getClosestLane(const Point2D& position) const {
     // Start with a reasonable search radius
     double searchRadius = 50.0;  // meters
-    std::vector<const Lane*> candidates = getNearbyLanes(position, searchRadius);
+    auto candidates{getNearbyLanes(position, searchRadius)};
     
     if (candidates.empty()) {
         // Try larger radius
@@ -178,10 +181,10 @@ std::optional<const Lane*> MapServer::getClosestLane(const Point2D& position) co
     }
     
     // Find closest lane by checking distance to centerline points
-    const Lane* closestLane = nullptr;
+    std::shared_ptr<Lane> closestLane = nullptr;
     double minDistance = std::numeric_limits<double>::max();
     
-    for (const Lane* lane : candidates) {
+    for (auto lane : candidates) {
         for (const auto& point : lane->centerline_) {
             double dist = position.distanceTo(point);
             if (dist < minDistance) {
@@ -194,30 +197,30 @@ std::optional<const Lane*> MapServer::getClosestLane(const Point2D& position) co
     return closestLane;
 }
 
-std::vector<const TrafficLight*> MapServer::getTrafficLightsForLane(uint64_t laneId) const {
-    std::vector<const TrafficLight*> result;
+std::vector<std::shared_ptr<TrafficLight>> MapServer::getTrafficLightsForLane(uint64_t laneId) const {
+    std::vector<std::shared_ptr<TrafficLight>> result;
     
     for (const auto& [id, light] : trafficLights_) {
-        auto it = std::find(light.controlledLaneIds_.begin(), 
-                           light.controlledLaneIds_.end(), 
+        auto it = std::find(light->controlledLaneIds_.begin(), 
+                           light->controlledLaneIds_.end(), 
                            laneId);
-        if (it != light.controlledLaneIds_.end()) {
-            result.push_back(&light);
+        if (it != light->controlledLaneIds_.end()) {
+            result.push_back(light);
         }
     }
     
     return result;
 }
 
-std::vector<const TrafficSign*> MapServer::getTrafficSignsForLane(uint64_t laneId) const {
-    std::vector<const TrafficSign*> result;
+std::vector<std::shared_ptr<TrafficSign>> MapServer::getTrafficSignsForLane(uint64_t laneId) const {
+    std::vector<std::shared_ptr<TrafficSign>> result;
     
     for (const auto& [id, sign] : trafficSigns_) {
-        auto it = std::find(sign.affectedLaneIds_.begin(), 
-                           sign.affectedLaneIds_.end(), 
+        auto it = std::find(sign->affectedLaneIds_.begin(), 
+                           sign->affectedLaneIds_.end(), 
                            laneId);
-        if (it != sign.affectedLaneIds_.end()) {
-            result.push_back(&sign);
+        if (it != sign->affectedLaneIds_.end()) {
+            result.push_back(sign);
         }
     }
     
@@ -230,26 +233,26 @@ size_t MapServer::getMemoryUsage() const {
     // Estimate lane memory
     for (const auto& [id, lane] : lanes_) {
         total += sizeof(Lane);
-        total += lane.centerline_.size() * sizeof(Point2D);
-        total += lane.leftBoundary_.size() * sizeof(Point2D);
-        total += lane.rightBoundary_.size() * sizeof(Point2D);
-        total += lane.predecessorIds_.size() * sizeof(uint64_t);
-        total += lane.successorIds_.size() * sizeof(uint64_t);
-        total += lane.adjacentLeftIds_.size() * sizeof(uint64_t);
-        total += lane.adjacentRightIds_.size() * sizeof(uint64_t);
+        total += lane->centerline_.size() * sizeof(Point2D);
+        total += lane->leftBoundary_.size() * sizeof(Point2D);
+        total += lane->rightBoundary_.size() * sizeof(Point2D);
+        total += lane->predecessorIds_.size() * sizeof(uint64_t);
+        total += lane->successorIds_.size() * sizeof(uint64_t);
+        total += lane->adjacentLeftIds_.size() * sizeof(uint64_t);
+        total += lane->adjacentRightIds_.size() * sizeof(uint64_t);
     }
     
     // Traffic lights
     total += trafficLights_.size() * sizeof(TrafficLight);
     for (const auto& [id, light] : trafficLights_) {
-        total += light.controlledLaneIds_.size() * sizeof(uint64_t);
+        total += light->controlledLaneIds_.size() * sizeof(uint64_t);
     }
     
     // Traffic signs
     total += trafficSigns_.size() * sizeof(TrafficSign);
     for (const auto& [id, sign] : trafficSigns_) {
-        total += sign.value_.capacity();
-        total += sign.affectedLaneIds_.size() * sizeof(uint64_t);
+        total += sign->value_.capacity();
+        total += sign->affectedLaneIds_.size() * sizeof(uint64_t);
     }
     
     // R-tree overhead (rough estimate)

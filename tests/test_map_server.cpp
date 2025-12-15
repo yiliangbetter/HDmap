@@ -87,8 +87,8 @@ TEST_F(MapServerTest, GetLaneById) {
     EXPECT_TRUE(lane.has_value());
     
     if (lane.has_value()) {
-        EXPECT_EQ(lane->id_, 100);
-        EXPECT_GT(lane->centerline_.size(), 0);
+        EXPECT_EQ((*lane)->id_, 100);
+        EXPECT_GT((*lane)->centerline_.size(), 0);
     }
     
     auto nonexistent = server.getLaneById(99999);

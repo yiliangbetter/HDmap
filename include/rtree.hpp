@@ -22,8 +22,8 @@ struct RTreeEntry {
     BoundingBox bbox;
     void* data;  // Points to either child node or map element
     
-    RTreeEntry() : data(nullptr) {}
-    RTreeEntry(const BoundingBox& bbox_, void* data_) : bbox(bbox_), data(data_) {}
+    RTreeEntry() : data{nullptr} {}
+    RTreeEntry(const BoundingBox& bbox_, void* data_) : bbox{bbox_}, data{data_} {}
 };
 
 class RTreeNode {
@@ -32,7 +32,7 @@ public:
     std::vector<RTreeEntry> entries;
     RTreeNode* parent;
     
-    RTreeNode(NodeType type_) : type(type_), parent(nullptr) {
+    RTreeNode(NodeType type_) : type{type_}, parent{nullptr} {
         entries.reserve(MAX_RTREE_ENTRIES);
     }
     

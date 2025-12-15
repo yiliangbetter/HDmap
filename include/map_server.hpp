@@ -56,30 +56,30 @@ public:
     QueryResult queryRegion(const BoundingBox& region) const;
     QueryResult queryRadius(const Point2D& center, double radius) const;
     
-    std::optional<Lane> getLaneById(uint64_t laneId) const;
-    std::optional<TrafficLight> getTrafficLightById(uint64_t id) const;
-    std::optional<TrafficSign> getTrafficSignById(uint64_t id) const;
+    std::optional<std::shared_ptr<Lane>> getLaneById(uint64_t laneId) const;
+    std::optional<std::shared_ptr<TrafficLight>> getTrafficLightById(uint64_t id) const;
+    std::optional<std::shared_ptr<TrafficSign>> getTrafficSignById(uint64_t id) const;
     
     // Get lanes within distance of a point
-    std::vector<const Lane*> getNearbyLanes(const Point2D& position, double maxDistance) const;
+    std::vector<std::shared_ptr<Lane>> getNearbyLanes(const Point2D& position, double maxDistance) const;
     
     // Get closest lane to a position
-    std::optional<const Lane*> getClosestLane(const Point2D& position) const;
+    std::optional<std::shared_ptr<Lane>> getClosestLane(const Point2D& position) const;
     
     // Get traffic lights controlling a specific lane
-    std::vector<const TrafficLight*> getTrafficLightsForLane(uint64_t laneId) const;
+    std::vector<std::shared_ptr<TrafficLight>> getTrafficLightsForLane(uint64_t laneId) const;
     
     // Get traffic signs affecting a specific lane
-    std::vector<const TrafficSign*> getTrafficSignsForLane(uint64_t laneId) const;
+    std::vector<std::shared_ptr<TrafficSign>> getTrafficSignsForLane(uint64_t laneId) const;
     
     // Statistics and memory usage
     size_t getLaneCount() const { return lanes_.size(); }
     size_t getTrafficLightCount() const { return trafficLights_.size(); }
     size_t getTrafficSignCount() const { return trafficSigns_.size(); }
     size_t getMemoryUsage() const;
-    std::unordered_map<uint64_t, Lane>& getLanes() {return lanes_;}
-    std::unordered_map<uint64_t, TrafficLight>& getTrafficLights() {return trafficLights_;}
-    std::unordered_map<uint64_t, TrafficSign>& getTrafficSigns(){return  trafficSigns_;}
+    std::unordered_map<uint64_t, std::shared_ptr<Lane>>& getLanes() {return lanes_;}
+    std::unordered_map<uint64_t, std::shared_ptr<TrafficLight>>& getTrafficLights() {return trafficLights_;}
+    std::unordered_map<uint64_t, std::shared_ptr<TrafficSign>>& getTrafficSigns(){return  trafficSigns_;}
     
     // Clear all map data
     void clear();
@@ -88,9 +88,9 @@ private:
     MemoryConstraints constraints_;
     
     // Map data storage
-    std::unordered_map<uint64_t, Lane> lanes_;
-    std::unordered_map<uint64_t, TrafficLight> trafficLights_;
-    std::unordered_map<uint64_t, TrafficSign> trafficSigns_;
+    std::unordered_map<uint64_t, std::shared_ptr<Lane>> lanes_;
+    std::unordered_map<uint64_t, std::shared_ptr<TrafficLight>> trafficLights_;
+    std::unordered_map<uint64_t, std::shared_ptr<TrafficSign>> trafficSigns_;
     
     // Spatial indices for fast queries
     RTree laneIndex_;

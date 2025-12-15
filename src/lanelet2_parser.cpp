@@ -110,10 +110,10 @@ bool Lanelet2Parser::parseLanelets(const std::string& content,
         bool isCenterline = wayStr.find("subtype") != std::string::npos;
         
         if (isCenterline) {
-            Lane lane;
-            lane.id_ = wayId;
-            lane.type_ = LaneType::DRIVING;
-            lane.speedLimit_ = 13.89;  // 50 km/h default
+            auto lane = std::make_shared<Lane>();
+            lane->id_ = wayId;
+            lane->type_ = LaneType::DRIVING;
+            lane->speedLimit_ = 13.89;  // 50 km/h default
             
             // Extract node references
             size_t ndPos = 0;
@@ -124,13 +124,13 @@ bool Lanelet2Parser::parseLanelets(const std::string& content,
                 
                 auto it = nodes.find(nodeId);
                 if (it != nodes.end()) {
-                    lane.centerline_.push_back(it->second);
+                    lane->centerline_.push_back(it->second);
                 }
                 ndPos = ndEnd;
             }
             
-            if (!lane.centerline_.empty()) {
-                mapServer.getLanes()[lane.id_] = std::move(lane);
+            if (!lane->centerline_.empty()) {
+                mapServer.getLanes()[lane->id_] = lane;
             }
         }
         
@@ -169,19 +169,19 @@ bool Lanelet2Parser::parseRegulatoryElements(const std::string& content, MapServ
         
         // Check subtype
         if (relStr.find("subtype=\"traffic_light\"") != std::string::npos) {
-            TrafficLight light;
-            light.id_ = relId;
-            light.position_ = Point2D(0, 0);  // Would extract from refers_to
-            light.state_ = TrafficLightState::UNKNOWN;
-            light.height_ = 5.0;
-            mapServer.getTrafficLights()[light.id_] = std::move(light);
+            auto light = std::make_shared<TrafficLight>();
+            light->id_ = relId;
+            light->position_ = Point2D(0, 0);  // Would extract from refers_to
+            light->state_ = TrafficLightState::UNKNOWN;
+            light->height_ = 5.0;
+            mapServer.getTrafficLights()[light->id_] = light;
         } else if (relStr.find("subtype=\"traffic_sign\"") != std::string::npos) {
-            TrafficSign sign;
-            sign.id_ = relId;
-            sign.position_ = Point2D(0, 0);
-            sign.type_ = TrafficSignType::OTHER;
-            sign.height_ = 3.0;
-            mapServer.getTrafficSigns()[sign.id_] = std::move(sign);
+            auto sign = std::make_shared<TrafficSign>();
+            sign->id_ = relId;
+            sign->position_ = Point2D(0, 0);
+            sign->type_ = TrafficSignType::OTHER;
+            sign->height_ = 3.0;
+            mapServer.getTrafficSigns()[sign->id_] = sign;
         }
         
         pos = endPos;
