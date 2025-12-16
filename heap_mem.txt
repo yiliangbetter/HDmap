@@ -1,0 +1,74 @@
+=== Runtime Memory Analysis for HDMap Server ===
+
+Starting hdmap_server...
+
+Process ID: 70268
+
+=== Memory Usage (ps) ===
+  PID    RSS      VSZ COMM
+70268 542624 411170640 ./build/hdmap_server
+
+Real Memory (RSS): 524.87 MB
+Virtual Memory (VSZ): 401533.82 MB
+
+=== Memory Segments (vmmap) ===
+REGION TYPE                    START - END         [ VSIZE  RSDNT  DIRTY   SWAP] PRT/MAX SHRMOD PURGE    REGION DETAIL
+__TEXT                      1042f8000-104304000    [   48K    48K     0K     0K] r-x/r-x SM=COW          /Users/luli/Desktop/Woven/HandsOnProjects/HDMap/build/hdmap_server
+__DATA_CONST                104304000-104308000    [   16K    16K     0K     0K] r--/rw- SM=COW          /Users/luli/Desktop/Woven/HandsOnProjects/HDMap/build/hdmap_server
+MALLOC metadata             104320000-104324000    [   16K    16K    16K     0K] r--/rwx SM=SHM          DefaultMallocZone_0x104320000 zone structure
+MALLOC guard page           104328000-10432c000    [   16K     0K     0K     0K] ---/rwx SM=SHM  
+MALLOC guard page           104338000-10433c000    [   16K     0K     0K     0K] ---/rwx SM=SHM  
+MALLOC guard page           10433c000-104340000    [   16K     0K     0K     0K] ---/rwx SM=SHM  
+MALLOC guard page           10434c000-104350000    [   16K     0K     0K     0K] ---/rwx SM=SHM  
+MALLOC guard page           104350000-104354000    [   16K     0K     0K     0K] ---/rwx SM=SHM  
+MALLOC guard page           104360000-104364000    [   16K     0K     0K     0K] ---/rwx SM=SHM  
+MALLOC metadata             104364000-104368000    [   16K    16K    16K     0K] r--/rwx SM=PRV  
+STACK GUARD                 167b08000-16b30c000    [ 56.0M     0K     0K     0K] ---/rwx SM=NUL          stack guard for thread 0
+__TEXT                      197ee8000-197f3c000    [  336K   336K     0K     0K] r-x/r-x SM=COW          /usr/lib/libobjc.A.dylib
+__TEXT                      197f3c000-197fd8000    [  624K   624K     0K     0K] r-x/r-x SM=COW          /usr/lib/dyld
+__TEXT                      197fd8000-197fdc000    [   16K    16K     0K     0K] r-x/r-x SM=COW          /usr/lib/system/libsystem_blocks.dylib
+__TEXT                      197fdc000-198027000    [  300K   300K     0K     0K] r-x/r-x SM=COW          /usr/lib/system/libxpc.dylib
+__TEXT                      198027000-198043000    [  112K   112K     0K     0K] r-x/r-x SM=COW          /usr/lib/system/libsystem_trace.dylib
+__TEXT                      198043000-1980e2000    [  636K   620K     0K     0K] r-x/r-x SM=COW          /usr/lib/system/libcorecrypto.dylib
+__TEXT                      1980e2000-19812a000    [  288K   288K     0K     0K] r-x/r-x SM=COW          /usr/lib/system/libsystem_malloc.dylib
+__TEXT                      19812a000-198171000    [  284K   284K     0K     0K] r-x/r-x SM=COW          /usr/lib/system/libdispatch.dylib
+
+=== Heap Allocations (heap) ===
+All zones: 192 nodes malloced - Sizes: 786432KB[1] 4KB[3] 1.5KB[1] 640[1] 528[1] 320[3] 128[1] 96[2] 80[1] 64[11] 48[19] 32[144] 16[4] 
+All zones: 192 nodes (805329008 bytes)
+
+Waiting for process to complete...
+Stack size limit:
+  Current (soft): 7 MB
+  Maximum (hard): 63 MB
+=== HD Map Server Demo ===
+
+Loading map from: test_data/benchmark/SanFrancisco.osm
+Map loaded successfully!
+
+Map Statistics:
+  Lanes: 0
+  Traffic Lights: 0
+  Traffic Signs: 0
+  Memory Usage: 0 MB
+
+=== Example Queries ===
+
+1. Querying region (0, 0) to (100, 100):
+Query Results:
+  Lanes: 0
+  Traffic Lights: 0
+  Traffic Signs: 0
+
+2. Querying 50m radius around (50, 50):
+Query Results:
+  Lanes: 0
+  Traffic Lights: 0
+  Traffic Signs: 0
+
+3. Finding closest lane to (25, 25):
+  No lane found nearby
+
+=== Demo Complete ===
+
+=== Analysis Complete ===
