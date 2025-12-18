@@ -11,6 +11,7 @@
 // perfect forwarding
 // do profiling, learn how to set up profiling tool
 // set up google benchmark to do more meaning runtime test
+// why would the stack then remain the same before and after the change?
 
 namespace hdmap {
 
@@ -44,22 +45,21 @@ void MapServer::buildSpatialIndices() {
     laneIndex_.clear();
     for (auto& [id, lane] : lanes_) {
         lane->computeBoundingBox();
-        // looks pretty fishy here, I got to say! 
-        laneIndex_.insert(lane->bbox_, lane.get());
+        laneIndex_.insert(lane->bbox_, lane);
     }
     
     // Build traffic light index
     trafficLightIndex_.clear();
     for (auto& [id, light] : trafficLights_) {
         BoundingBox bbox(light->position_, light->position_);
-        trafficLightIndex_.insert(bbox, light.get());
+        trafficLightIndex_.insert(bbox, light);
     }
     
     // Build traffic sign index
     trafficSignIndex_.clear();
     for (auto& [id, sign] : trafficSigns_) {
         BoundingBox bbox(sign->position_, sign->position_);
-        trafficSignIndex_.insert(bbox, sign.get());
+        trafficSignIndex_.insert(bbox, sign);
     }
 }
 
@@ -67,24 +67,24 @@ QueryResult MapServer::queryRegion(const BoundingBox& region) const {
     QueryResult result;
     
     // Query lanes
-    std::vector<void*> laneResults;
+    std::vector<std::shared_ptr<Object>> laneResults;
     laneIndex_.query(region, laneResults);
-    for (void* ptr : laneResults) {
-        result.lanes_.push_back(std::shared_ptr<Lane>{static_cast<Lane*>(ptr)});
+    for (auto object : laneResults) {
+        result.lanes_.push_back(std::static_pointer_cast<Lane>(object));
     }
     
     // Query traffic lights
-    std::vector<void*> lightResults;
+    std::vector<std::shared_ptr<Object>> lightResults;
     trafficLightIndex_.query(region, lightResults);
-    for (void* ptr : lightResults) {
-        result.trafficLights_.push_back(std::shared_ptr<TrafficLight>{static_cast<TrafficLight*>(ptr)});
+    for (auto object : lightResults) {
+        result.trafficLights_.push_back(std::static_pointer_cast<TrafficLight>(object));
     }
     
     // Query traffic signs
-    std::vector<void*> signResults;
+    std::vector<std::shared_ptr<Object>> signResults;
     trafficSignIndex_.query(region, signResults);
-    for (void* ptr : signResults) {
-        result.trafficSigns_.push_back(std::shared_ptr<TrafficSign>{static_cast<TrafficSign*>(ptr)});
+    for (auto object : signResults) {
+        result.trafficSigns_.push_back(std::static_pointer_cast<TrafficSign>(object));
     }
     
     // return value optimization
@@ -95,11 +95,10 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
     QueryResult result;
     
     // Query lanes
-    std::vector<void*> laneResults;
+    std::vector<std::shared_ptr<Object>> laneResults;
     laneIndex_.queryRadius(center, radius, laneResults);
-    for (void* ptr : laneResults) {
-        auto lane{std::shared_ptr<Lane>(static_cast<Lane*>(ptr))};
-        // Double-check distance for accuracy
+    for (auto object : laneResults) {
+        auto lane{std::static_pointer_cast<Lane>(object)};
         bool withinRadius = false;
         for (const auto& point : lane->centerline_) {
             if (center.distanceTo(point) <= radius) {
@@ -113,22 +112,21 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
     }
     
     // Query traffic lights
-    std::vector<void*> lightResults;
+    std::vector<std::shared_ptr<Object>> lightResults;
     // here needs to be changed as well
-    trafficLightIndex_.queryRadius(center, radius, lightResults);
-    for (void* ptr : lightResults) {
-        auto light{std::shared_ptr<TrafficLight>(static_cast<TrafficLight*>(ptr))};
+    trafficLightIndex_.queryRadius(center, radius, lightResults);    
+    for (auto object : lightResults) {
+        auto light{std::static_pointer_cast<TrafficLight>(object)};
         if (center.distanceTo(light->position_) <= radius) {
             result.trafficLights_.push_back(light);
         }
     }
     
     // Query traffic signs
-    std::vector<void*> signResults;
+    std::vector<std::shared_ptr<Object>> signResults;
     trafficSignIndex_.queryRadius(center, radius, signResults);
-    for (void* ptr : signResults) {
-        auto sign{std::shared_ptr<TrafficSign>(static_cast<TrafficSign*>(ptr))};
-        
+    for (auto object : signResults) {
+        auto sign{std::static_pointer_cast<TrafficSign>(object)};
         if (center.distanceTo(sign->position_) <= radius) {
             result.trafficSigns_.push_back(sign);
         }

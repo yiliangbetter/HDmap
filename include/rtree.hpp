@@ -19,25 +19,25 @@ enum class NodeType : uint8_t {
 
 // Entry in R-tree node
 struct RTreeEntry {
-    BoundingBox bbox;
-    void* data;  // Points to either child node or map element
+    BoundingBox bbox_;
+    std::shared_ptr<Object> data_;  // Points to either child node or map element
     
-    RTreeEntry() : data{nullptr} {}
-    RTreeEntry(const BoundingBox& bbox_, void* data_) : bbox{bbox_}, data{data_} {}
+    RTreeEntry() : data_{nullptr} {}
+    RTreeEntry(const BoundingBox& bbox, std::shared_ptr<Object> data) : bbox_{bbox}, data_{data} {}
 };
 
-class RTreeNode {
+class RTreeNode: public Object {
 public:
-    NodeType type;
-    std::vector<RTreeEntry> entries;
-    RTreeNode* parent;
+    NodeType type_;
+    std::vector<RTreeEntry> entries_;
+    std::shared_ptr<RTreeNode> parent_;
     
-    RTreeNode(NodeType type_) : type{type_}, parent{nullptr} {
-        entries.reserve(MAX_RTREE_ENTRIES);
+    RTreeNode(NodeType type) : type_{type}, parent_{nullptr} {
+        entries_.reserve(MAX_RTREE_ENTRIES);
     }
     
-    bool isLeaf() const { return type == NodeType::LEAF; }
-    bool isFull() const { return entries.size() >= MAX_RTREE_ENTRIES; }
+    bool isLeaf() const { return type_ == NodeType::LEAF; }
+    bool isFull() const { return entries_.size() >= MAX_RTREE_ENTRIES; }
     
     BoundingBox getBoundingBox() const;
 };
@@ -55,13 +55,13 @@ public:
     RTree& operator=(RTree&&) = default;
     
     // Insert an element with its bounding box
-    void insert(const BoundingBox& bbox, void* data);
+    void insert(const BoundingBox& bbox, std::shared_ptr<Object> data);
     
     // Query elements within a bounding box
-    void query(const BoundingBox& bbox, std::vector<void*>& results) const;
+    void query(const BoundingBox& bbox, std::vector<std::shared_ptr<Object>>& results) const;
     
     // Query elements within radius of a point
-    void queryRadius(const Point2D& center, double radius, std::vector<void*>& results) const;
+    void queryRadius(const Point2D& center, double radius, std::vector<std::shared_ptr<Object>>& results) const;
     
     // Clear all entries
     void clear();
@@ -71,16 +71,15 @@ public:
     size_t height() const;
     
 private:
-    RTreeNode* root_;
+    std::shared_ptr<RTreeNode> root_;
     size_t elementCount_;
     
     // Helper methods
-    RTreeNode* chooseLeaf(const BoundingBox& bbox);
-    void splitNode(RTreeNode* node, RTreeEntry& newEntry);
-    void adjustTree(RTreeNode* leaf);
-    void queryNode(const RTreeNode* node, const BoundingBox& bbox, std::vector<void*>& results) const;
-    double computeEnlargement(const BoundingBox& existing, const BoundingBox& addition) const;
-    void deleteTree(RTreeNode* node);
+    std::shared_ptr<RTreeNode> chooseLeaf(const BoundingBox& bbox);
+    void splitNode(std::shared_ptr<RTreeNode>& node, RTreeEntry& newEntry);
+    void adjustTree(std::shared_ptr<RTreeNode>& leaf);
+    void queryNode(const std::shared_ptr<const RTreeNode>& node, const BoundingBox& bbox, std::vector<std::shared_ptr<Object>>& results) const;
+    double computeEnlargement(const BoundingBox& existing, const BoundingBox& addition) const;    
 };
 
 } // namespace hdmap

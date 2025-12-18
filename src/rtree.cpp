@@ -6,13 +6,13 @@
 namespace hdmap {
 
 BoundingBox RTreeNode::getBoundingBox() const {
-    if (entries.empty()) {
+    if (entries_.empty()) {
         return BoundingBox();
     }
     
-    BoundingBox result = entries[0].bbox;
-    for (size_t i = 1; i < entries.size(); ++i) {
-        const auto& bbox = entries[i].bbox;
+    BoundingBox result = entries_[0].bbox_;
+    for (size_t i = 1; i < entries_.size(); ++i) {
+        const auto& bbox = entries_[i].bbox_;
         result.min_.x_ = std::min(result.min_.x_, bbox.min_.x_);
         result.min_.y_ = std::min(result.min_.y_, bbox.min_.y_);
         result.max_.x_ = std::max(result.max_.x_, bbox.max_.x_);
@@ -28,22 +28,21 @@ RTree::RTree() : root_{new RTreeNode{NodeType::LEAF}}, elementCount_{0} {
 
 RTree::~RTree() {
     clear();
-    delete root_;
 }
 
-void RTree::insert(const BoundingBox& bbox, void* data) {
+void RTree::insert(const BoundingBox& bbox, std::shared_ptr<Object> data) {
     RTreeEntry entry(bbox, data);
     
-    if (root_->entries.empty()) {
-        root_->entries.push_back(entry);
+    if (root_->entries_.empty()) {
+        root_->entries_.push_back(entry);
         elementCount_++;
         return;
     }
     
-    RTreeNode* leaf = chooseLeaf(bbox);
+    auto leaf{chooseLeaf(bbox)};
     
     if (!leaf->isFull()) {
-        leaf->entries.push_back(entry);
+        leaf->entries_.push_back(entry);
         adjustTree(leaf);
     } else {
         splitNode(leaf, entry);
@@ -52,23 +51,23 @@ void RTree::insert(const BoundingBox& bbox, void* data) {
     elementCount_++;
 }
 
-RTreeNode* RTree::chooseLeaf(const BoundingBox& bbox) {
-    RTreeNode* current = root_;
+std::shared_ptr<RTreeNode> RTree::chooseLeaf(const BoundingBox& bbox) {
+    auto current{root_};
     
     while (!current->isLeaf()) {
         // Find entry with minimum enlargement
         size_t bestIdx = 0;
         double minEnlargement = std::numeric_limits<double>::max();
         
-        for (size_t i = 0; i < current->entries.size(); ++i) {
-            double enlargement = computeEnlargement(current->entries[i].bbox, bbox);
+        for (size_t i = 0; i < current->entries_.size(); ++i) {
+            double enlargement = computeEnlargement(current->entries_[i].bbox_, bbox);
             if (enlargement < minEnlargement) {
                 minEnlargement = enlargement;
                 bestIdx = i;
             }
         }
         
-        current = static_cast<RTreeNode*>(current->entries[bestIdx].data);
+        current = std::static_pointer_cast<RTreeNode>(current->entries_[bestIdx].data_);
     }
     
     return current;
@@ -84,9 +83,9 @@ double RTree::computeEnlargement(const BoundingBox& existing, const BoundingBox&
     return combined.area() - existing.area();
 }
 
-void RTree::splitNode(RTreeNode* node, RTreeEntry& newEntry) {
+void RTree::splitNode(std::shared_ptr<RTreeNode>& node, RTreeEntry& newEntry) {
     // Simple linear split algorithm
-    std::vector<RTreeEntry> allEntries = node->entries;
+    std::vector<RTreeEntry> allEntries = node->entries_;
     allEntries.push_back(newEntry);
     
     // Find seeds (entries that are farthest apart)
@@ -95,8 +94,8 @@ void RTree::splitNode(RTreeNode* node, RTreeEntry& newEntry) {
     
     for (size_t i = 0; i < allEntries.size(); ++i) {
         for (size_t j = i + 1; j < allEntries.size(); ++j) {
-            Point2D center1 = allEntries[i].bbox.center();
-            Point2D center2 = allEntries[j].bbox.center();
+            Point2D center1 = allEntries[i].bbox_.center();
+            Point2D center2 = allEntries[j].bbox_.center();
             double dist = center1.distanceTo(center2);
             if (dist > maxDistance) {
                 maxDistance = dist;
@@ -107,13 +106,13 @@ void RTree::splitNode(RTreeNode* node, RTreeEntry& newEntry) {
     }
     
     // Create new node
-    RTreeNode* newNode = new RTreeNode(node->type);
-    newNode->parent = node->parent;
+    auto newNode{std::make_shared<RTreeNode>(node->type_)};
+    newNode->parent_ = node->parent_;
     
     // Distribute entries
-    node->entries.clear();
-    node->entries.push_back(allEntries[seed1]);
-    newNode->entries.push_back(allEntries[seed2]);
+    node->entries_.clear();
+    node->entries_.push_back(allEntries[seed1]);
+    newNode->entries_.push_back(allEntries[seed2]);
     
     for (size_t i = 0; i < allEntries.size(); ++i) {
         if (i == seed1 || i == seed2) continue;
@@ -121,47 +120,47 @@ void RTree::splitNode(RTreeNode* node, RTreeEntry& newEntry) {
         BoundingBox bbox1 = node->getBoundingBox();
         BoundingBox bbox2 = newNode->getBoundingBox();
         
-        double enlarge1 = computeEnlargement(bbox1, allEntries[i].bbox);
-        double enlarge2 = computeEnlargement(bbox2, allEntries[i].bbox);
+        double enlarge1 = computeEnlargement(bbox1, allEntries[i].bbox_);
+        double enlarge2 = computeEnlargement(bbox2, allEntries[i].bbox_);
         
         if (enlarge1 < enlarge2) {
-            node->entries.push_back(allEntries[i]);
+            node->entries_.push_back(allEntries[i]);
         } else {
-            newNode->entries.push_back(allEntries[i]);
+            newNode->entries_.push_back(allEntries[i]);
         }
     }
     
     // Handle root split
     if (node == root_) {
-        RTreeNode* newRoot = new RTreeNode(NodeType::INTERNAL);
-        newRoot->entries.push_back(RTreeEntry(node->getBoundingBox(), node));
-        newRoot->entries.push_back(RTreeEntry(newNode->getBoundingBox(), newNode));
-        node->parent = newRoot;
-        newNode->parent = newRoot;
+        auto newRoot{std::make_shared<RTreeNode>(NodeType::INTERNAL)};
+        newRoot->entries_.push_back(RTreeEntry(node->getBoundingBox(), node));
+        newRoot->entries_.push_back(RTreeEntry(newNode->getBoundingBox(), newNode));
+        node->parent_ = newRoot;
+        newNode->parent_ = newRoot;
         root_ = newRoot;
     } else {
         // Insert new node into parent
         RTreeEntry parentEntry(newNode->getBoundingBox(), newNode);
-        if (!node->parent->isFull()) {
-            node->parent->entries.push_back(parentEntry);
+        if (!node->parent_->isFull()) {
+            node->parent_->entries_.push_back(parentEntry);
         } else {
-            splitNode(node->parent, parentEntry);
+            splitNode(node->parent_, parentEntry);
         }
     }
     
     adjustTree(node);
 }
 
-void RTree::adjustTree(RTreeNode* leaf) {
-    RTreeNode* current = leaf;
+void RTree::adjustTree(std::shared_ptr<RTreeNode>& leaf) {
+    auto current = leaf;
     
     while (current != root_) {
-        RTreeNode* parent = current->parent;
+        auto parent{current->parent_};
         
         // Update parent's bounding box for this child
-        for (auto& entry : parent->entries) {
-            if (entry.data == current) {
-                entry.bbox = current->getBoundingBox();
+        for (auto& entry : parent->entries_) {
+            if (entry.data_ == current) {
+                entry.bbox_ = current->getBoundingBox();
                 break;
             }
         }
@@ -170,27 +169,27 @@ void RTree::adjustTree(RTreeNode* leaf) {
     }
 }
 
-void RTree::query(const BoundingBox& bbox, std::vector<void*>& results) const {
+void RTree::query(const BoundingBox& bbox, std::vector<std::shared_ptr<Object>>& results) const {
     if (root_) {
         queryNode(root_, bbox, results);
     }
 }
 
-void RTree::queryNode(const RTreeNode* node, const BoundingBox& bbox, std::vector<void*>& results) const {
-    for (const auto& entry : node->entries) {
-        if (!entry.bbox.intersects(bbox)) {
+void RTree::queryNode(const std::shared_ptr<const RTreeNode>& node, const BoundingBox& bbox, std::vector<std::shared_ptr<Object>>& results) const {
+    for (const auto& entry : node->entries_) {
+        if (!entry.bbox_.intersects(bbox)) {
             continue;
         }
         
         if (node->isLeaf()) {
-            results.push_back(entry.data);
+            results.push_back(entry.data_);
         } else {
-            queryNode(static_cast<RTreeNode*>(entry.data), bbox, results);
+            queryNode(std::static_pointer_cast<RTreeNode>(entry.data_), bbox, results);
         }
     }
 }
 
-void RTree::queryRadius(const Point2D& center, double radius, std::vector<void*>& results) const {
+void RTree::queryRadius(const Point2D& center, double radius, std::vector<std::shared_ptr<Object>>& results) const {
     BoundingBox bbox(
         Point2D(center.x_ - radius, center.y_ - radius),
         Point2D(center.x_ + radius, center.y_ + radius)
@@ -200,32 +199,20 @@ void RTree::queryRadius(const Point2D& center, double radius, std::vector<void*>
 
 void RTree::clear() {
     if (root_ && !root_->isLeaf()) {
-        deleteTree(root_);
     }
     if (root_) {
-        root_->entries.clear();
+        root_->entries_.clear();
     }
     elementCount_ = 0;
-}
-
-void RTree::deleteTree(RTreeNode* node) {
-    if (!node->isLeaf()) {
-        for (auto& entry : node->entries) {
-            deleteTree(static_cast<RTreeNode*>(entry.data));
-        }
-    }
-    if (node != root_) {
-        delete node;
-    }
 }
 
 size_t RTree::height() const {
     if (!root_) return 0;
     
     size_t h = 1;
-    RTreeNode* current = root_;
-    while (!current->isLeaf() && !current->entries.empty()) {
-        current = static_cast<RTreeNode*>(current->entries[0].data);
+    auto current{root_};
+    while (!current->isLeaf() && !current->entries_.empty()) {
+        current = std::static_pointer_cast<RTreeNode>(current->entries_[0].data_);
         h++;
     }
     return h;

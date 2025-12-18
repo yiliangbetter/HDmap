@@ -63,8 +63,14 @@ enum class TrafficSignType : uint8_t {
 };
 
 // Core map elements
-struct Lane {
+struct Object
+{
     uint64_t id_;
+    Object(): id_{0}{};
+    Object(uint64_t id): id_{id} {}; 
+};
+
+struct Lane : public Object{
     LaneType type_;
     std::vector<Point2D> centerline_;
     std::vector<Point2D> leftBoundary_;
@@ -76,30 +82,28 @@ struct Lane {
     double speedLimit_;  // m/s
     BoundingBox bbox_;
     
-    Lane() : id_{0}, type_{LaneType::DRIVING}, speedLimit_{0.0} {}
+    Lane() : type_{LaneType::DRIVING}, speedLimit_{0.0} {}
     
     void computeBoundingBox();
 };
 
-struct TrafficLight {
-    uint64_t id_;
+struct TrafficLight: public Object {
     Point2D position_;
     TrafficLightState state_;
     std::vector<uint64_t> controlledLaneIds_;
     double height_;  // meters above ground
     
-    TrafficLight() : id_{0}, state_{TrafficLightState::UNKNOWN}, height_{0.0} {}
+    TrafficLight() : state_{TrafficLightState::UNKNOWN}, height_{0.0} {}
 };
 
-struct TrafficSign {
-    uint64_t id_;
+struct TrafficSign : public Object{
     Point2D position_;
     TrafficSignType type_;
     std::string value_;  // e.g., "50" for speed limit
     std::vector<uint64_t> affectedLaneIds_;
     double height_;  // meters above ground
     
-    TrafficSign() : id_{0}, type_{TrafficSignType::OTHER}, height_{0.0} {}
+    TrafficSign() : type_{TrafficSignType::OTHER}, height_{0.0} {}
 };
 
 // Map query result structures
