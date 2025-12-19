@@ -1,0 +1,31 @@
+# clang-format configuration tuned to follow Google C++ style
+# - BasedOnStyle: Google provides the main rules
+# - ColumnLimit enforces the line-length restriction
+# - IncludeCategories + SortIncludes enforce the include ordering
+BasedOnStyle: Google
+IndentWidth: 2
+UseTab: Never
+TabWidth: 2
+ColumnLimit: 80
+ReflowComments: false
+
+# Include sorting and grouping: system headers, then gtest, then project headers
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<.*'
+    Priority: 1
+  - Regex: '^"gtest/.*'
+    Priority: 2
+  - Regex: '^"'
+    Priority: 3
+
+# Pointer alignment consistent with Google style (type-left, e.g. int* p)
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# Keep short functions and other one-liners on multiple lines only where appropriate
+AllowShortFunctionsOnASingleLine: None
+
+# Do not force reformatting of some macros/comments in awkward ways
+ForEachMacros: [foreach, Q_FOREACH]
