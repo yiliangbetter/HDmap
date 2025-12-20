@@ -14,6 +14,7 @@
 // do profiling, learn how to set up profiling tool
 // set up google benchmark to do more meaning runtime test
 // why would the stack then remain the same before and after the change?
+// template specialization
 
 namespace hdmap {
 
