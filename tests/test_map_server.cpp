@@ -64,8 +64,8 @@ TEST_F(MapServerTest, QueryRegion) {
   MapServer server;
   server.loadFromFile(testMapPath);
 
-  BoundingBox region(Point2D(0, 0), Point2D(50, 50));
-  QueryResult result = server.queryRegion(region);
+  const BoundingBox region{Point2D(0, 0), Point2D(50, 50)};
+  const QueryResult result{server.queryRegion(region)};
 
   EXPECT_GT(result.lanes.size(), 0);
 }
@@ -74,8 +74,8 @@ TEST_F(MapServerTest, QueryRadius) {
   MapServer server;
   server.loadFromFile(testMapPath);
 
-  Point2D center(50, 50);
-  QueryResult result = server.queryRadius(center, 100.0);
+  const Point2D center{50, 50};
+  const QueryResult result{server.queryRadius(center, 100.0)};
 
   EXPECT_GT(result.lanes.size(), 0);
 }
@@ -106,7 +106,7 @@ TEST_F(MapServerTest, MemoryConstraints) {
   MapServer server(constraints);
 
   // Loading should fail due to constraints
-  bool loaded = server.loadFromFile(testMapPath);
+  const bool loaded{server.loadFromFile(testMapPath)};
   // May or may not load depending on actual sizes
 
   if (loaded) {
@@ -118,8 +118,8 @@ TEST_F(MapServerTest, GetClosestLane) {
   MapServer server;
   server.loadFromFile(testMapPath);
 
-  Point2D position(10, 10);
-  auto closestLane = server.getClosestLane(position);
+  const Point2D position{10, 10};
+  const auto closestLane{server.getClosestLane(position)};
 
   EXPECT_TRUE(closestLane.has_value());
 }
@@ -141,7 +141,7 @@ TEST_F(MapServerTest, MemoryUsage) {
   MapServer server;
   server.loadFromFile(testMapPath);
 
-  size_t memUsage = server.getMemoryUsage();
+  const auto memUsage{server.getMemoryUsage()};
   EXPECT_GT(memUsage, 0);
 
   // Should be reasonable for a small test map

@@ -3,6 +3,7 @@
 #include <array>
 #include <memory>
 #include <vector>
+#include <variant>
 
 #include "types.hpp"
 
@@ -15,19 +16,22 @@ constexpr size_t MIN_RTREE_ENTRIES = 4;
 
 enum class NodeType : uint8_t { LEAF, INTERNAL };
 
+class RTreeNode;
+using Data = std::variant<std::shared_ptr<RTreeNode>, std::shared_ptr<Lane>, std::shared_ptr<TrafficLight>, std::shared_ptr<TrafficSign>>;
+
 // Entry in R-tree node
 struct RTreeEntry {
   BoundingBox bbox;
-  std::shared_ptr<Object> data;  // Points to either child node or map element
+  Data data;  // Points to either child node or map element
 
-  RTreeEntry() : data{nullptr} {
+  RTreeEntry() : data{} {
   }
-  RTreeEntry(const BoundingBox& bbox, std::shared_ptr<Object> data)
+  RTreeEntry(const BoundingBox& bbox, const Data data)
       : bbox{bbox}, data{data} {
   }
 };
 
-class RTreeNode : public Object {
+class RTreeNode {
  public:
   NodeType type;
   std::vector<RTreeEntry> entries;
@@ -60,15 +64,15 @@ class RTree {
   RTree& operator=(RTree&&) = default;
 
   // Insert an element with its bounding box
-  void insert(const BoundingBox& bbox, std::shared_ptr<Object> data);
+  void insert(const BoundingBox& bbox, Data data);
 
   // Query elements within a bounding box
   void query(const BoundingBox& bbox,
-             std::vector<std::shared_ptr<Object>>& results) const;
+             std::vector<Data>& results) const;
 
   // Query elements within radius of a point
   void queryRadius(const Point2D& center, double radius,
-                   std::vector<std::shared_ptr<Object>>& results) const;
+                   std::vector<Data>& results) const;
 
   // Clear all entries
   void clear();
@@ -89,7 +93,7 @@ class RTree {
   void adjustTree(std::shared_ptr<RTreeNode>& leaf);
   void queryNode(const std::shared_ptr<const RTreeNode>& node,
                  const BoundingBox& bbox,
-                 std::vector<std::shared_ptr<Object>>& results) const;
+                 std::vector<Data>& results) const;
   double computeEnlargement(const BoundingBox& existing,
                             const BoundingBox& addition) const;
 };

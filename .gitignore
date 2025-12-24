@@ -8,6 +8,7 @@ build/
 
 # IDE/Editor files
 .vscode/
+.VSCodeCounter/
 .vs/
 .idea/
 *.swp

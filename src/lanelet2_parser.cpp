@@ -7,7 +7,7 @@
 namespace hdmap {
 
 bool Lanelet2Parser::parse(const std::string& filepath, MapServer& mapServer) {
-  std::ifstream file(filepath);
+  const std::ifstream file{filepath};
   if (!file.is_open()) {
     lastError_ = "Cannot open file: " + filepath;
     return false;
@@ -15,7 +15,7 @@ bool Lanelet2Parser::parse(const std::string& filepath, MapServer& mapServer) {
 
   std::stringstream buffer;
   buffer << file.rdbuf();
-  std::string content = buffer.str();
+  const std::string content{buffer.str()};
 
   // Parse nodes (points)
   std::unordered_map<uint64_t, Point2D> nodes;
@@ -43,10 +43,10 @@ bool Lanelet2Parser::parseNodes(const std::string& content,
 
   size_t pos = 0;
   while ((pos = content.find("<node ", pos)) != std::string::npos) {
-    size_t endPos = content.find("/>", pos);
+    const size_t endPos{content.find("/>", pos)};
     if (endPos == std::string::npos) break;
 
-    std::string nodeStr = content.substr(pos, endPos - pos);
+    const std::string nodeStr{content.substr(pos, endPos - pos)};
 
     // Extract id
     size_t idPos = nodeStr.find("id=\"");
@@ -55,8 +55,8 @@ bool Lanelet2Parser::parseNodes(const std::string& content,
       continue;
     }
     idPos += 4;
-    size_t idEnd = nodeStr.find("\"", idPos);
-    uint64_t id = std::stoull(nodeStr.substr(idPos, idEnd - idPos));
+    const size_t idEnd{nodeStr.find("\"", idPos)};
+    const uint64_t id{std::stoull(nodeStr.substr(idPos, idEnd - idPos))};
 
     // Extract lat (y)
     size_t latPos = nodeStr.find("lat=\"");
@@ -65,8 +65,8 @@ bool Lanelet2Parser::parseNodes(const std::string& content,
       continue;
     }
     latPos += 5;
-    size_t latEnd = nodeStr.find("\"", latPos);
-    double lat = std::stod(nodeStr.substr(latPos, latEnd - latPos));
+    const size_t latEnd{nodeStr.find("\"", latPos)};
+    const double lat{std::stod(nodeStr.substr(latPos, latEnd - latPos))};
 
     // Extract lon (x)
     size_t lonPos = nodeStr.find("lon=\"");
@@ -75,8 +75,8 @@ bool Lanelet2Parser::parseNodes(const std::string& content,
       continue;
     }
     lonPos += 5;
-    size_t lonEnd = nodeStr.find("\"", lonPos);
-    double lon = std::stod(nodeStr.substr(lonPos, lonEnd - lonPos));
+    const size_t lonEnd{nodeStr.find("\"", lonPos)};
+    const double lon{std::stod(nodeStr.substr(lonPos, lonEnd - lonPos))};
 
     nodes[id] = Point2D(lon, lat);
     pos = endPos;
@@ -93,10 +93,10 @@ bool Lanelet2Parser::parseLanelets(
 
   size_t pos = 0;
   while ((pos = content.find("<way ", pos)) != std::string::npos) {
-    size_t endPos = content.find("</way>", pos);
+    const size_t endPos{content.find("</way>", pos)};
     if (endPos == std::string::npos) break;
 
-    std::string wayStr = content.substr(pos, endPos - pos);
+    const std::string wayStr{content.substr(pos, endPos - pos)};
 
     // Extract id
     size_t idPos = wayStr.find("id=\"");
@@ -105,11 +105,11 @@ bool Lanelet2Parser::parseLanelets(
       continue;
     }
     idPos += 4;
-    size_t idEnd = wayStr.find("\"", idPos);
-    uint64_t wayId = std::stoull(wayStr.substr(idPos, idEnd - idPos));
+    const size_t idEnd{wayStr.find("\"", idPos)};
+    const uint64_t wayId{std::stoull(wayStr.substr(idPos, idEnd - idPos))};
 
     // Check if this is a centerline (has subtype tag)
-    bool isCenterline = wayStr.find("subtype") != std::string::npos;
+    const bool isCenterline{wayStr.find("subtype") != std::string::npos};
 
     if (isCenterline) {
       auto lane = std::make_shared<Lane>();
@@ -121,8 +121,8 @@ bool Lanelet2Parser::parseLanelets(
       size_t ndPos = 0;
       while ((ndPos = wayStr.find("<nd ref=\"", ndPos)) != std::string::npos) {
         ndPos += 9;
-        size_t ndEnd = wayStr.find("\"", ndPos);
-        uint64_t nodeId = std::stoull(wayStr.substr(ndPos, ndEnd - ndPos));
+        const size_t ndEnd{wayStr.find("\"", ndPos)};
+        const uint64_t nodeId{std::stoull(wayStr.substr(ndPos, ndEnd - ndPos))};
 
         auto it = nodes.find(nodeId);
         if (it != nodes.end()) {
@@ -149,10 +149,10 @@ bool Lanelet2Parser::parseRegulatoryElements(const std::string& content,
 
   size_t pos = 0;
   while ((pos = content.find("<relation ", pos)) != std::string::npos) {
-    size_t endPos = content.find("</relation>", pos);
+    const size_t endPos{content.find("</relation>", pos)};
     if (endPos == std::string::npos) break;
 
-    std::string relStr = content.substr(pos, endPos - pos);
+    const std::string relStr{content.substr(pos, endPos - pos)};
 
     // Check if regulatory element
     if (relStr.find("type=\"regulatory_element\"") == std::string::npos) {
@@ -167,8 +167,8 @@ bool Lanelet2Parser::parseRegulatoryElements(const std::string& content,
       continue;
     }
     idPos += 4;
-    size_t idEnd = relStr.find("\"", idPos);
-    uint64_t relId = std::stoull(relStr.substr(idPos, idEnd - idPos));
+    const size_t idEnd{relStr.find("\"", idPos)};
+    const uint64_t relId{std::stoull(relStr.substr(idPos, idEnd - idPos))};
 
     // Check subtype
     if (relStr.find("subtype=\"traffic_light\"") != std::string::npos) {

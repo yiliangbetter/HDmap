@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <variant>
 
 namespace hdmap {
 
@@ -64,17 +65,8 @@ enum class TrafficSignType : uint8_t {
   SCHOOL_ZONE,
   OTHER
 };
-
-// Core map elements
-struct Object {
+struct Lane {
   uint64_t id;
-  Object() : id{0} {
-  }
-  explicit Object(uint64_t id) : id{id} {
-  }
-};
-
-struct Lane : public Object {
   LaneType type;
   std::vector<Point2D> centerline;
   std::vector<Point2D> leftBoundary;
@@ -86,30 +78,32 @@ struct Lane : public Object {
   double speedLimit;  // m/s
   BoundingBox bbox;
 
-  Lane() : type{LaneType::DRIVING}, speedLimit{0.0} {
+  Lane() : id{0}, type{LaneType::DRIVING}, speedLimit{0.0} {
   }
 
   void computeBoundingBox();
 };
 
-struct TrafficLight : public Object {
+struct TrafficLight {
+  uint64_t id;
   Point2D position;
   TrafficLightState state;
   std::vector<uint64_t> controlledLaneIds;
   double height;  // meters above ground
 
-  TrafficLight() : state{TrafficLightState::UNKNOWN}, height{0.0} {
+  TrafficLight() :id{0}, state{TrafficLightState::UNKNOWN}, height{0.0} {
   }
 };
 
-struct TrafficSign : public Object {
+struct TrafficSign {
+  uint64_t id;
   Point2D position;
   TrafficSignType type;
   std::string value;  // e.g., "50" for speed limit
   std::vector<uint64_t> affectedLaneIds;
   double height;  // meters above ground
 
-  TrafficSign() : type{TrafficSignType::OTHER}, height{0.0} {
+  TrafficSign() :id{0}, type{TrafficSignType::OTHER}, height{0.0} {
   }
 };
 

@@ -1,18 +1,27 @@
-# Clang-Tidy configuration for const correctness
+# Clang-Tidy configuration for const correctness and modern C++
 Checks: >
   readability-const-return-type,
   readability-make-member-function-const,
   cppcoreguidelines-avoid-const-or-ref-data-members,
-  modernize-use-auto,
+  cppcoreguidelines-prefer-member-initializer,
+  modernize-*,
+  -modernize-use-trailing-return-type,
   performance-unnecessary-copy-initialization,
   performance-for-range-copy,
   performance-implicit-conversion-in-loop,
-  misc-const-correctness
+  misc-const-correctness,
+  cppcoreguidelines-init-variables
 
 CheckOptions:
-  - key: readability-identifier-naming.ConstantCase
-    value: UPPER_CASE
-  - key: readability-identifier-naming.PrivateMemberSuffix
-    value: '_'
+- key: readability-identifier-naming.ConstantPrefix
+  value: 'k'
+- key: readability-identifier-naming.ConstantCase
+  value: 'CamelCase'
+- key: readability-identifier-naming.PrivateMemberSuffix
+  value: '_'
+- key: modernize-use-auto.MinTypeNameLength
+  value: '5'
+- key: modernize-use-auto.RemoveStars
+  value: 'true'
 
 WarningsAsErrors: '*'

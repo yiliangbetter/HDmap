@@ -14,6 +14,7 @@
 // avoid using void* as a way to express generic
 // use type erasure to replace virtual binding
 // use bazel instead of Cmake
+// value based argument passing
 
 using namespace hdmap;
 
@@ -25,7 +26,7 @@ void printQueryResult(const QueryResult& result) {
 
   if (!result.lanes.empty()) {
     std::cout << "\n  Lane Details:\n";
-    for (auto lane : result.lanes) {
+    for (const auto& lane : result.lanes) {
       std::cout << "    ID: " << lane->id
                 << ", Points: " << lane->centerline.size()
                 << ", Speed Limit: " << (lane->speedLimit * 3.6) << " km/h\n";
@@ -89,22 +90,22 @@ int main(int argc, char** argv) {
 
   // Query 1: Region query
   std::cout << "1. Querying region (0, 0) to (100, 100):\n";
-  BoundingBox region(Point2D(0, 0), Point2D(100, 100));
-  QueryResult result1 = mapServer.queryRegion(region);
+  const BoundingBox region{Point2D(0, 0), Point2D(100, 100)};
+  const QueryResult result1{mapServer.queryRegion(region)};
   printQueryResult(result1);
 
   // Query 2: Radius query
   std::cout << "\n2. Querying 50m radius around (50, 50):\n";
-  Point2D center(50, 50);
-  QueryResult result2 = mapServer.queryRadius(center, 50.0);
+  const Point2D center{50, 50};
+  const QueryResult result2{mapServer.queryRadius(center, 50.0)};
   printQueryResult(result2);
 
   // Query 3: Closest lane
   std::cout << "\n3. Finding closest lane to (25, 25):\n";
-  Point2D position(25, 25);
+  const Point2D position{25, 25};
   auto closestLane = mapServer.getClosestLane(position);
   if (closestLane.has_value()) {
-    auto lane = closestLane.value();
+    const auto& lane{closestLane.value()};
     std::cout << "  Found lane ID: " << lane->id << "\n";
     std::cout << "  Points in centerline: " << lane->centerline.size() << "\n";
   } else {

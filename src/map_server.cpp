@@ -54,14 +54,14 @@ void MapServer::buildSpatialIndices() {
   // Build traffic light index
   trafficLightIndex_.clear();
   for (auto& [id, light] : trafficLights_) {
-    BoundingBox bbox(light->position, light->position);
+    const BoundingBox bbox{light->position, light->position};
     trafficLightIndex_.insert(bbox, light);
   }
 
   // Build traffic sign index
   trafficSignIndex_.clear();
   for (auto& [id, sign] : trafficSigns_) {
-    BoundingBox bbox(sign->position, sign->position);
+    const BoundingBox bbox{sign->position, sign->position};
     trafficSignIndex_.insert(bbox, sign);
   }
 }
@@ -70,26 +70,26 @@ QueryResult MapServer::queryRegion(const BoundingBox& region) const {
   QueryResult result;
 
   // Query lanes
-  std::vector<std::shared_ptr<Object>> laneResults;
+  std::vector<Data> laneResults;
   laneIndex_.query(region, laneResults);
-  for (auto object : laneResults) {
-    result.lanes.push_back(std::static_pointer_cast<Lane>(object));
+  for (const auto& object : laneResults) {
+    result.lanes.push_back(std::get<std::shared_ptr<Lane>>(object));
   }
 
   // Query traffic lights
-  std::vector<std::shared_ptr<Object>> lightResults;
+  std::vector<Data> lightResults;
   trafficLightIndex_.query(region, lightResults);
-  for (auto object : lightResults) {
+  for (const auto& object : lightResults) {
     result.trafficLights.push_back(
-        std::static_pointer_cast<TrafficLight>(object));
+        std::get<std::shared_ptr<TrafficLight>>(object));
   }
 
   // Query traffic signs
-  std::vector<std::shared_ptr<Object>> signResults;
+  std::vector<Data> signResults;
   trafficSignIndex_.query(region, signResults);
-  for (auto object : signResults) {
+  for (const auto& object : signResults) {
     result.trafficSigns.push_back(
-        std::static_pointer_cast<TrafficSign>(object));
+        std::get<std::shared_ptr<TrafficSign>>(object));
   }
 
   // return value optimization
@@ -100,10 +100,10 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
   QueryResult result;
 
   // Query lanes
-  std::vector<std::shared_ptr<Object>> laneResults;
+  std::vector<Data> laneResults;
   laneIndex_.queryRadius(center, radius, laneResults);
-  for (auto object : laneResults) {
-    auto lane{std::static_pointer_cast<Lane>(object)};
+  for (const auto& object : laneResults) {
+    auto lane{std::get<std::shared_ptr<Lane>>(object)};
     bool withinRadius = false;
     for (const auto& point : lane->centerline) {
       if (center.distanceTo(point) <= radius) {
@@ -117,21 +117,21 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
   }
 
   // Query traffic lights
-  std::vector<std::shared_ptr<Object>> lightResults;
+  std::vector<Data> lightResults;
   // here needs to be changed as well
   trafficLightIndex_.queryRadius(center, radius, lightResults);
-  for (auto object : lightResults) {
-    auto light{std::static_pointer_cast<TrafficLight>(object)};
+  for (const auto& object : lightResults) {
+    auto light{std::get<std::shared_ptr<TrafficLight>>(object)};
     if (center.distanceTo(light->position) <= radius) {
       result.trafficLights.push_back(light);
     }
   }
 
   // Query traffic signs
-  std::vector<std::shared_ptr<Object>> signResults;
+  std::vector<Data> signResults;
   trafficSignIndex_.queryRadius(center, radius, signResults);
-  for (auto object : signResults) {
-    auto sign{std::static_pointer_cast<TrafficSign>(object)};
+  for (const auto& object : signResults) {
+    auto sign{std::get<std::shared_ptr<TrafficSign>>(object)};
     if (center.distanceTo(sign->position) <= radius) {
       result.trafficSigns.push_back(sign);
     }
@@ -169,7 +169,7 @@ std::optional<std::shared_ptr<TrafficSign>> MapServer::getTrafficSignById(
 
 std::vector<std::shared_ptr<Lane>> MapServer::getNearbyLanes(
     const Point2D& position, double maxDistance) const {
-  QueryResult result = queryRadius(position, maxDistance);
+  const QueryResult result{queryRadius(position, maxDistance)};
   return result.lanes;
 }
 
@@ -192,9 +192,9 @@ std::optional<std::shared_ptr<Lane>> MapServer::getClosestLane(
   std::shared_ptr<Lane> closestLane = nullptr;
   double minDistance = std::numeric_limits<double>::max();
 
-  for (auto lane : candidates) {
+  for (const auto& lane : candidates) {
     for (const auto& point : lane->centerline) {
-      double dist = position.distanceTo(point);
+      const auto dist{position.distanceTo(point)};
       if (dist < minDistance) {
         minDistance = dist;
         closestLane = lane;
@@ -276,7 +276,7 @@ bool MapServer::checkMemoryConstraints() const {
   if (trafficLights_.size() > constraints_.maxTrafficLights) return false;
   if (trafficSigns_.size() > constraints_.maxTrafficSigns) return false;
 
-  size_t memUsage = getMemoryUsage();
+  const size_t memUsage{getMemoryUsage()};
   return memUsage <= constraints_.maxTotalMemory;
 }
 

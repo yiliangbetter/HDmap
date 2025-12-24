@@ -26,7 +26,7 @@ double BoundingBox::area() const {
 }
 
 Point2D BoundingBox::center() const {
-  return Point2D((min.x + max.x) / 2.0, (min.y + max.y) / 2.0);
+  return Point2D{(min.x + max.x) / 2.0, (min.y + max.y) / 2.0};
 }
 
 void Lane::computeBoundingBox() {
