@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <vector>
 #include <variant>
+#include <vector>
 
 namespace hdmap {
 
@@ -37,22 +37,9 @@ struct BoundingBox {
 };
 
 // Map element types
-enum class LaneType : uint8_t {
-  DRIVING,
-  SIDEWALK,
-  BIKE_LANE,
-  PARKING,
-  SHOULDER,
-  RESTRICTED
-};
+enum class LaneType : uint8_t { DRIVING, SIDEWALK, BIKE_LANE, PARKING, SHOULDER, RESTRICTED };
 
-enum class TrafficLightState : uint8_t {
-  RED,
-  YELLOW,
-  GREEN,
-  RED_YELLOW,
-  UNKNOWN
-};
+enum class TrafficLightState : uint8_t { RED, YELLOW, GREEN, RED_YELLOW, UNKNOWN };
 
 enum class TrafficSignType : uint8_t {
   STOP,
@@ -91,7 +78,7 @@ struct TrafficLight {
   std::vector<uint64_t> controlledLaneIds;
   double height;  // meters above ground
 
-  TrafficLight() :id{0}, state{TrafficLightState::UNKNOWN}, height{0.0} {
+  TrafficLight() : id{0}, state{TrafficLightState::UNKNOWN}, height{0.0} {
   }
 };
 
@@ -103,7 +90,7 @@ struct TrafficSign {
   std::vector<uint64_t> affectedLaneIds;
   double height;  // meters above ground
 
-  TrafficSign() :id{0}, type{TrafficSignType::OTHER}, height{0.0} {
+  TrafficSign() : id{0}, type{TrafficSignType::OTHER}, height{0.0} {
   }
 };
 

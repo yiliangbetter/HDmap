@@ -76,8 +76,7 @@ TEST(QueryResultTest, TotalCount) {
 
   result.lanes = {std::make_shared<Lane>(lane1), std::make_shared<Lane>(lane2)};
   result.trafficLights = {std::make_shared<TrafficLight>(light1)};
-  result.trafficSigns = {std::make_shared<TrafficSign>(sign1),
-                         std::make_shared<TrafficSign>(sign2),
+  result.trafficSigns = {std::make_shared<TrafficSign>(sign1), std::make_shared<TrafficSign>(sign2),
                          std::make_shared<TrafficSign>(sign3)};
 
   EXPECT_EQ(result.totalCount(), 6);

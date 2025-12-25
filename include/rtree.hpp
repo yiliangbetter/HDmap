@@ -2,8 +2,8 @@
 
 #include <array>
 #include <memory>
-#include <vector>
 #include <variant>
+#include <vector>
 
 #include "types.hpp"
 
@@ -17,7 +17,8 @@ constexpr size_t MIN_RTREE_ENTRIES = 4;
 enum class NodeType : uint8_t { LEAF, INTERNAL };
 
 class RTreeNode;
-using Data = std::variant<std::shared_ptr<RTreeNode>, std::shared_ptr<Lane>, std::shared_ptr<TrafficLight>, std::shared_ptr<TrafficSign>>;
+using Data = std::variant<std::shared_ptr<RTreeNode>, std::shared_ptr<Lane>, std::shared_ptr<TrafficLight>,
+                          std::shared_ptr<TrafficSign>>;
 
 // Entry in R-tree node
 struct RTreeEntry {
@@ -26,8 +27,7 @@ struct RTreeEntry {
 
   RTreeEntry() : data{} {
   }
-  RTreeEntry(const BoundingBox& bbox, const Data data)
-      : bbox{bbox}, data{data} {
+  RTreeEntry(const BoundingBox& bbox, const Data data) : bbox{bbox}, data{data} {
   }
 };
 
@@ -67,12 +67,10 @@ class RTree {
   void insert(const BoundingBox& bbox, Data data);
 
   // Query elements within a bounding box
-  void query(const BoundingBox& bbox,
-             std::vector<Data>& results) const;
+  void query(const BoundingBox& bbox, std::vector<Data>& results) const;
 
   // Query elements within radius of a point
-  void queryRadius(const Point2D& center, double radius,
-                   std::vector<Data>& results) const;
+  void queryRadius(const Point2D& center, double radius, std::vector<Data>& results) const;
 
   // Clear all entries
   void clear();
@@ -91,11 +89,9 @@ class RTree {
   std::shared_ptr<RTreeNode> chooseLeaf(const BoundingBox& bbox);
   void splitNode(std::shared_ptr<RTreeNode>& node, RTreeEntry& newEntry);
   void adjustTree(std::shared_ptr<RTreeNode>& leaf);
-  void queryNode(const std::shared_ptr<const RTreeNode>& node,
-                 const BoundingBox& bbox,
+  void queryNode(const std::shared_ptr<const RTreeNode>& node, const BoundingBox& bbox,
                  std::vector<Data>& results) const;
-  double computeEnlargement(const BoundingBox& existing,
-                            const BoundingBox& addition) const;
+  double computeEnlargement(const BoundingBox& existing, const BoundingBox& addition) const;
 };
 
 }  // namespace hdmap

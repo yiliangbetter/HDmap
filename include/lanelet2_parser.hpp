@@ -24,13 +24,10 @@ class Lanelet2Parser {
   std::string lastError_;
 
   // Helper parsing methods
-  bool parseNodes(const std::string& content,
-                  std::unordered_map<uint64_t, Point2D>& nodes);
-  bool parseLanelets(const std::string& content,
-                     const std::unordered_map<uint64_t, Point2D>& nodes,
+  bool parseNodes(const std::string& content, std::unordered_map<uint64_t, Point2D>& nodes);
+  bool parseLanelets(const std::string& content, const std::unordered_map<uint64_t, Point2D>& nodes,
                      MapServer& mapServer);
-  bool parseRegulatoryElements(const std::string& content,
-                               MapServer& mapServer);
+  bool parseRegulatoryElements(const std::string& content, MapServer& mapServer);
 };
 
 }  // namespace hdmap
