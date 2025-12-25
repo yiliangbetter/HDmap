@@ -1,6 +1,8 @@
-#pragma once
+#ifndef MAP_SERVER_HPP
+#define MAP_SERVER_HPP
 
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -12,8 +14,9 @@ namespace hdmap {
 
 // yiliang
 // shall I make a singleton?
-// Memory constraints for embedded systems
-// use clang-format to enforce a coding style
+// SOLID principle review
+// modern cpp review
+
 struct MemoryConstraints {
   size_t maxTotalMemory;  // bytes
   size_t maxLanes;
@@ -38,44 +41,39 @@ struct MemoryConstraints {
 // Main HD Map Server API
 class MapServer {
  public:
-  explicit MapServer(const MemoryConstraints& constraints =
-                         MemoryConstraints::defaultConstraints());
+  static std::shared_ptr<MapServer> getInstance(
+      const MemoryConstraints& constraints = MemoryConstraints::defaultConstraints());
+
   ~MapServer();
 
   // Disable copy, enable move
   MapServer(const MapServer&) = delete;
   MapServer& operator=(const MapServer&) = delete;
-  MapServer(MapServer&&) = default;
-  MapServer& operator=(MapServer&&) = default;
+  MapServer(MapServer&&) = delete;
+  MapServer& operator=(MapServer&&) = delete;
 
   // Load map from file
-  bool loadFromFile(const std::string& filepath);
+  bool loadFromFile(std::string filepath);
 
   // Query API - main interface for autonomous driving
   QueryResult queryRegion(const BoundingBox& region) const;
   QueryResult queryRadius(const Point2D& center, double radius) const;
 
   std::optional<std::shared_ptr<Lane>> getLaneById(uint64_t laneId) const;
-  std::optional<std::shared_ptr<TrafficLight>> getTrafficLightById(
-      uint64_t id) const;
-  std::optional<std::shared_ptr<TrafficSign>> getTrafficSignById(
-      uint64_t id) const;
+  std::optional<std::shared_ptr<TrafficLight>> getTrafficLightById(uint64_t id) const;
+  std::optional<std::shared_ptr<TrafficSign>> getTrafficSignById(uint64_t id) const;
 
   // Get lanes within distance of a point
-  std::vector<std::shared_ptr<Lane>> getNearbyLanes(const Point2D& position,
-                                                    double maxDistance) const;
+  std::vector<std::shared_ptr<Lane>> getNearbyLanes(const Point2D& position, double maxDistance) const;
 
   // Get closest lane to a position
-  std::optional<std::shared_ptr<Lane>> getClosestLane(
-      const Point2D& position) const;
+  std::optional<std::shared_ptr<Lane>> getClosestLane(const Point2D& position) const;
 
   // Get traffic lights controlling a specific lane
-  std::vector<std::shared_ptr<TrafficLight>> getTrafficLightsForLane(
-      uint64_t laneId) const;
+  std::vector<std::shared_ptr<TrafficLight>> getTrafficLightsForLane(uint64_t laneId) const;
 
   // Get traffic signs affecting a specific lane
-  std::vector<std::shared_ptr<TrafficSign>> getTrafficSignsForLane(
-      uint64_t laneId) const;
+  std::vector<std::shared_ptr<TrafficSign>> getTrafficSignsForLane(uint64_t laneId) const;
 
   // Statistics and memory usage
   size_t getLaneCount() const {
@@ -91,24 +89,20 @@ class MapServer {
   const std::unordered_map<uint64_t, std::shared_ptr<Lane>>& getLanes() const {
     return lanes_;
   }
-  const std::unordered_map<uint64_t, std::shared_ptr<TrafficLight>>&
-  getTrafficLights() const {
+  const std::unordered_map<uint64_t, std::shared_ptr<TrafficLight>>& getTrafficLights() const {
     return trafficLights_;
   }
-  const std::unordered_map<uint64_t, std::shared_ptr<TrafficSign>>&
-  getTrafficSigns() const {
+  const std::unordered_map<uint64_t, std::shared_ptr<TrafficSign>>& getTrafficSigns() const {
     return trafficSigns_;
   }
 
   std::unordered_map<uint64_t, std::shared_ptr<Lane>>& getLanesMutable() {
     return lanes_;
   }
-  std::unordered_map<uint64_t, std::shared_ptr<TrafficLight>>&
-  getTrafficLightsMutable() {
+  std::unordered_map<uint64_t, std::shared_ptr<TrafficLight>>& getTrafficLightsMutable() {
     return trafficLights_;
   }
-  std::unordered_map<uint64_t, std::shared_ptr<TrafficSign>>&
-  getTrafficSignsMutable() {
+  std::unordered_map<uint64_t, std::shared_ptr<TrafficSign>>& getTrafficSignsMutable() {
     return trafficSigns_;
   }
 
@@ -116,6 +110,15 @@ class MapServer {
   void clear();
 
  private:
+  explicit MapServer(const MemoryConstraints& constraints = MemoryConstraints::defaultConstraints());
+
+  static std::shared_ptr<MapServer> instance;
+  static std::mutex mutex_lock;
+
+  // Helper methods
+  bool checkMemoryConstraints() const;
+  void buildSpatialIndices();
+
   MemoryConstraints constraints_;
 
   // Map data storage
@@ -127,10 +130,7 @@ class MapServer {
   RTree laneIndex_;
   RTree trafficLightIndex_;
   RTree trafficSignIndex_;
-
-  // Helper methods
-  bool checkMemoryConstraints() const;
-  void buildSpatialIndices();
 };
 
 }  // namespace hdmap
+#endif  //MAP_SERVER_HPP

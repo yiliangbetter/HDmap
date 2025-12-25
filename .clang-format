@@ -6,7 +6,7 @@ BasedOnStyle: Google
 IndentWidth: 2
 UseTab: Never
 TabWidth: 2
-ColumnLimit: 80
+ColumnLimit: 120
 ReflowComments: false
 
 # Include sorting and grouping: system headers, then gtest, then project headers

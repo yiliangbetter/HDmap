@@ -54,37 +54,37 @@ class MapServerTest : public ::testing::Test {
 };
 
 TEST_F(MapServerTest, LoadMap) {
-  MapServer server;
+  auto server{MapServer::getInstance()};
 
-  EXPECT_TRUE(server.loadFromFile(testMapPath));
-  EXPECT_GT(server.getLaneCount(), 0);
+  EXPECT_TRUE(server->loadFromFile(std::move(testMapPath)));
+  EXPECT_GT(server->getLaneCount(), 0);
 }
 
 TEST_F(MapServerTest, QueryRegion) {
-  MapServer server;
-  server.loadFromFile(testMapPath);
+  auto server{MapServer::getInstance()};
+  server->loadFromFile(std::move(testMapPath));
 
   const BoundingBox region{Point2D(0, 0), Point2D(50, 50)};
-  const QueryResult result{server.queryRegion(region)};
+  const QueryResult result{server->queryRegion(region)};
 
   EXPECT_GT(result.lanes.size(), 0);
 }
 
 TEST_F(MapServerTest, QueryRadius) {
-  MapServer server;
-  server.loadFromFile(testMapPath);
+  auto server{MapServer::getInstance()};
+  server->loadFromFile(std::move(testMapPath));
 
   const Point2D center{50, 50};
-  const QueryResult result{server.queryRadius(center, 100.0)};
+  const QueryResult result{server->queryRadius(center, 100.0)};
 
   EXPECT_GT(result.lanes.size(), 0);
 }
 
 TEST_F(MapServerTest, GetLaneById) {
-  MapServer server;
-  server.loadFromFile(testMapPath);
+  auto server{MapServer::getInstance()};
+  server->loadFromFile(std::move(testMapPath));
 
-  auto lane = server.getLaneById(100);
+  auto lane = server->getLaneById(100);
   EXPECT_TRUE(lane.has_value());
 
   if (lane.has_value()) {
@@ -92,56 +92,39 @@ TEST_F(MapServerTest, GetLaneById) {
     EXPECT_GT((*lane)->centerline.size(), 0);
   }
 
-  auto nonexistent = server.getLaneById(99999);
+  auto nonexistent = server->getLaneById(99999);
   EXPECT_FALSE(nonexistent.has_value());
 }
 
-TEST_F(MapServerTest, MemoryConstraints) {
-  MemoryConstraints constraints;
-  constraints.maxTotalMemory = 1024;  // Very small
-  constraints.maxLanes = 1;
-  constraints.maxTrafficLights = 1;
-  constraints.maxTrafficSigns = 1;
-
-  MapServer server(constraints);
-
-  // Loading should fail due to constraints
-  const bool loaded{server.loadFromFile(testMapPath)};
-  // May or may not load depending on actual sizes
-
-  if (loaded) {
-    EXPECT_LE(server.getLaneCount(), constraints.maxLanes);
-  }
-}
-
 TEST_F(MapServerTest, GetClosestLane) {
-  MapServer server;
-  server.loadFromFile(testMapPath);
+  auto server{MapServer::getInstance()};
+  server->loadFromFile(std::move(testMapPath));
 
   const Point2D position{10, 10};
-  const auto closestLane{server.getClosestLane(position)};
+  const auto closestLane{server->getClosestLane(position)};
 
   EXPECT_TRUE(closestLane.has_value());
 }
 
 TEST_F(MapServerTest, Clear) {
-  MapServer server;
-  server.loadFromFile(testMapPath);
+  auto server{MapServer::getInstance()};
 
-  EXPECT_GT(server.getLaneCount(), 0);
+  server->loadFromFile(std::move(testMapPath));
 
-  server.clear();
+  EXPECT_GT(server->getLaneCount(), 0);
 
-  EXPECT_EQ(server.getLaneCount(), 0);
-  EXPECT_EQ(server.getTrafficLightCount(), 0);
-  EXPECT_EQ(server.getTrafficSignCount(), 0);
+  server->clear();
+
+  EXPECT_EQ(server->getLaneCount(), 0);
+  EXPECT_EQ(server->getTrafficLightCount(), 0);
+  EXPECT_EQ(server->getTrafficSignCount(), 0);
 }
 
 TEST_F(MapServerTest, MemoryUsage) {
-  MapServer server;
-  server.loadFromFile(testMapPath);
+  auto server{MapServer::getInstance()};
+  server->loadFromFile(testMapPath);
 
-  const auto memUsage{server.getMemoryUsage()};
+  const auto memUsage{server->getMemoryUsage()};
   EXPECT_GT(memUsage, 0);
 
   // Should be reasonable for a small test map
@@ -149,8 +132,8 @@ TEST_F(MapServerTest, MemoryUsage) {
 }
 
 TEST_F(MapServerTest, InvalidFile) {
-  MapServer server;
+  auto server{MapServer::getInstance()};
 
-  EXPECT_FALSE(server.loadFromFile("/nonexistent/path/map.osm"));
-  EXPECT_EQ(server.getLaneCount(), 0);
+  EXPECT_FALSE(server->loadFromFile("/nonexistent/path/map.osm"));
+  EXPECT_EQ(server->getLaneCount(), 0);
 }
