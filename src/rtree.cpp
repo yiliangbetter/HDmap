@@ -1,8 +1,10 @@
-#include "rtree.hpp"
+#include "include/rtree.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <memory>
+#include <vector>
 
 namespace hdmap {
 
@@ -204,8 +206,6 @@ void RTree::queryRadius(const Point2D& center, double radius,
 }
 
 void RTree::clear() {
-  if (root_ && !root_->isLeaf()) {
-  }
   if (root_) {
     root_->entries.clear();
   }

@@ -35,7 +35,7 @@ add_library(hdmap_lib
 )
 
 target_include_directories(hdmap_lib PUBLIC
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}
 )
 
 # Main executable

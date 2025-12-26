@@ -1,12 +1,14 @@
-#include "map_server.hpp"
+#include "include/map_server.hpp"
 
 #include <algorithm>
 #include <limits>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "lanelet2_parser.hpp"
+#include "include/lanelet2_parser.hpp"
 
 // yiliang
-// make MapServer a singleton
 // cpplint
 // read and extend test cases
 // customize clang-tidy

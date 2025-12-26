@@ -1,9 +1,9 @@
 #include <fstream>
 #include <gtest/gtest.h>
+#include <string>
+#include <utility>
 
-#include "map_server.hpp"
-
-using namespace hdmap;
+#include "include/map_server.hpp"
 
 class MapServerTest : public ::testing::Test {
  protected:
@@ -54,34 +54,32 @@ class MapServerTest : public ::testing::Test {
 };
 
 TEST_F(MapServerTest, LoadMap) {
-  auto server{MapServer::getInstance()};
+  auto server{hdmap::MapServer::getInstance()};
 
   EXPECT_TRUE(server->loadFromFile(std::move(testMapPath)));
   EXPECT_GT(server->getLaneCount(), 0);
 }
 
 TEST_F(MapServerTest, QueryRegion) {
-  auto server{MapServer::getInstance()};
+  auto server{hdmap::MapServer::getInstance()};
   server->loadFromFile(std::move(testMapPath));
 
-  const BoundingBox region{Point2D(0, 0), Point2D(50, 50)};
-  const QueryResult result{server->queryRegion(region)};
-
+  const hdmap::BoundingBox region{hdmap::Point2D(0, 0), hdmap::Point2D(50, 50)};
+  const hdmap::QueryResult result{server->queryRegion(region)};
   EXPECT_GT(result.lanes.size(), 0);
 }
 
 TEST_F(MapServerTest, QueryRadius) {
-  auto server{MapServer::getInstance()};
+  auto server{hdmap::MapServer::getInstance()};
   server->loadFromFile(std::move(testMapPath));
 
-  const Point2D center{50, 50};
-  const QueryResult result{server->queryRadius(center, 100.0)};
-
+  const hdmap::Point2D center{50, 50};
+  const hdmap::QueryResult result{server->queryRadius(center, 100.0)};
   EXPECT_GT(result.lanes.size(), 0);
 }
 
 TEST_F(MapServerTest, GetLaneById) {
-  auto server{MapServer::getInstance()};
+  auto server{hdmap::MapServer::getInstance()};
   server->loadFromFile(std::move(testMapPath));
 
   auto lane = server->getLaneById(100);
@@ -97,17 +95,17 @@ TEST_F(MapServerTest, GetLaneById) {
 }
 
 TEST_F(MapServerTest, GetClosestLane) {
-  auto server{MapServer::getInstance()};
+  auto server{hdmap::MapServer::getInstance()};
   server->loadFromFile(std::move(testMapPath));
 
-  const Point2D position{10, 10};
+  const hdmap::Point2D position{10, 10};
   const auto closestLane{server->getClosestLane(position)};
 
   EXPECT_TRUE(closestLane.has_value());
 }
 
 TEST_F(MapServerTest, Clear) {
-  auto server{MapServer::getInstance()};
+  auto server{hdmap::MapServer::getInstance()};
 
   server->loadFromFile(std::move(testMapPath));
 
@@ -121,7 +119,7 @@ TEST_F(MapServerTest, Clear) {
 }
 
 TEST_F(MapServerTest, MemoryUsage) {
-  auto server{MapServer::getInstance()};
+  auto server{hdmap::MapServer::getInstance()};
   server->loadFromFile(testMapPath);
 
   const auto memUsage{server->getMemoryUsage()};
@@ -132,7 +130,7 @@ TEST_F(MapServerTest, MemoryUsage) {
 }
 
 TEST_F(MapServerTest, InvalidFile) {
-  auto server{MapServer::getInstance()};
+  auto server{hdmap::MapServer::getInstance()};
 
   EXPECT_FALSE(server->loadFromFile("/nonexistent/path/map.osm"));
   EXPECT_EQ(server->getLaneCount(), 0);

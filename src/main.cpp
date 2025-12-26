@@ -1,11 +1,11 @@
 #include <iomanip>
 #include <iostream>
+#include <string>
+#include <utility>
 
-#include "map_server.hpp"
+#include "include/map_server.hpp"
 
-using namespace hdmap;
-
-void printQueryResult(const QueryResult& result) {
+void printQueryResult(const hdmap::QueryResult& result) {
   std::cout << "Query Results:\n";
   std::cout << "  Lanes: " << result.lanes.size() << "\n";
   std::cout << "  Traffic Lights: " << result.trafficLights.size() << "\n";
@@ -48,8 +48,8 @@ int main(int argc, char** argv) {
   std::cout << "=== HD Map Server Demo ===\n\n";
 
   // Create map server with default constraints
-  auto mapServer{
-      MapServer::getInstance(MemoryConstraints::defaultConstraints())};
+  auto mapServer{hdmap::MapServer::getInstance(
+      hdmap::MemoryConstraints::defaultConstraints())};
 
   // Load map data
   std::string mapFile = "data/sample_map.osm";
@@ -79,19 +79,20 @@ int main(int argc, char** argv) {
 
   // Query 1: Region query
   std::cout << "1. Querying region (0, 0) to (100, 100):\n";
-  const BoundingBox region{Point2D(0, 0), Point2D(100, 100)};
-  const QueryResult result1{mapServer->queryRegion(region)};
+  const hdmap::BoundingBox region{hdmap::Point2D(0, 0),
+                                  hdmap::Point2D(100, 100)};
+  const hdmap::QueryResult result1{mapServer->queryRegion(region)};
   printQueryResult(result1);
 
   // Query 2: Radius query
   std::cout << "\n2. Querying 50m radius around (50, 50):\n";
-  const Point2D center{50, 50};
-  const QueryResult result2{mapServer->queryRadius(center, 50.0)};
+  const hdmap::Point2D center{50, 50};
+  const hdmap::QueryResult result2{mapServer->queryRadius(center, 50.0)};
   printQueryResult(result2);
 
   // Query 3: Closest lane
   std::cout << "\n3. Finding closest lane to (25, 25):\n";
-  const Point2D position{25, 25};
+  const hdmap::Point2D position{25, 25};
   auto closestLane = mapServer->getClosestLane(position);
   if (closestLane.has_value()) {
     const auto& lane{closestLane.value()};

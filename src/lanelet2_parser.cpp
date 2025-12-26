@@ -1,8 +1,11 @@
-#include "lanelet2_parser.hpp"
+#include "include/lanelet2_parser.hpp"
 
 #include <algorithm>
 #include <fstream>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <unordered_map>
 
 namespace hdmap {
 
