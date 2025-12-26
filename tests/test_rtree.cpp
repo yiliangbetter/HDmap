@@ -70,7 +70,8 @@ TEST(RTreeTest, ManyInsertions) {
   std::vector<Data> data(100);
   for (int i = 0; i < 100; ++i) {
     data[i] = Data{};
-    const BoundingBox bbox{Point2D(i * 10.0, i * 10.0), Point2D(i * 10.0 + 5.0, i * 10.0 + 5.0)};
+    const BoundingBox bbox{Point2D(i * 10.0, i * 10.0),
+                           Point2D(i * 10.0 + 5.0, i * 10.0 + 5.0)};
     tree.insert(bbox, data[i]);
   }
 

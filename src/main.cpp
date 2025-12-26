@@ -14,7 +14,8 @@ void printQueryResult(const QueryResult& result) {
   if (!result.lanes.empty()) {
     std::cout << "\n  Lane Details:\n";
     for (const auto& lane : result.lanes) {
-      std::cout << "    ID: " << lane->id << ", Points: " << lane->centerline.size()
+      std::cout << "    ID: " << lane->id
+                << ", Points: " << lane->centerline.size()
                 << ", Speed Limit: " << (lane->speedLimit * 3.6) << " km/h\n";
     }
   }
@@ -29,13 +30,15 @@ void printStackLimit() {
     if (limit.rlim_cur == RLIM_INFINITY) {
       std::cout << "  Current (soft): unlimited\n";
     } else {
-      std::cout << "  Current (soft): " << (limit.rlim_cur / 1024 / 1024) << " MB\n";
+      std::cout << "  Current (soft): " << (limit.rlim_cur / 1024 / 1024)
+                << " MB\n";
     }
 
     if (limit.rlim_max == RLIM_INFINITY) {
       std::cout << "  Maximum (hard): unlimited\n";
     } else {
-      std::cout << "  Maximum (hard): " << (limit.rlim_max / 1024 / 1024) << " MB\n";
+      std::cout << "  Maximum (hard): " << (limit.rlim_max / 1024 / 1024)
+                << " MB\n";
     }
   }
 }
@@ -45,7 +48,8 @@ int main(int argc, char** argv) {
   std::cout << "=== HD Map Server Demo ===\n\n";
 
   // Create map server with default constraints
-  auto mapServer{MapServer::getInstance(MemoryConstraints::defaultConstraints())};
+  auto mapServer{
+      MapServer::getInstance(MemoryConstraints::defaultConstraints())};
 
   // Load map data
   std::string mapFile = "data/sample_map.osm";
@@ -64,9 +68,11 @@ int main(int argc, char** argv) {
   // Print statistics
   std::cout << "Map Statistics:\n";
   std::cout << "  Lanes: " << mapServer->getLaneCount() << "\n";
-  std::cout << "  Traffic Lights: " << mapServer->getTrafficLightCount() << "\n";
+  std::cout << "  Traffic Lights: " << mapServer->getTrafficLightCount()
+            << "\n";
   std::cout << "  Traffic Signs: " << mapServer->getTrafficSignCount() << "\n";
-  std::cout << "  Memory Usage: " << (mapServer->getMemoryUsage() / 1024.0 / 1024.0) << " MB\n\n";
+  std::cout << "  Memory Usage: "
+            << (mapServer->getMemoryUsage() / 1024.0 / 1024.0) << " MB\n\n";
 
   // Example queries
   std::cout << "=== Example Queries ===\n\n";

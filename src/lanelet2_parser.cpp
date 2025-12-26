@@ -36,7 +36,8 @@ bool Lanelet2Parser::parse(const std::string& filepath, MapServer& mapServer) {
   return true;
 }
 
-bool Lanelet2Parser::parseNodes(const std::string& content, std::unordered_map<uint64_t, Point2D>& nodes) {
+bool Lanelet2Parser::parseNodes(const std::string& content,
+                                std::unordered_map<uint64_t, Point2D>& nodes) {
   // Simplified parser - looks for node tags
   // Format: <node id="X" lat="Y" lon="Z"/>
 
@@ -84,8 +85,9 @@ bool Lanelet2Parser::parseNodes(const std::string& content, std::unordered_map<u
   return !nodes.empty();
 }
 
-bool Lanelet2Parser::parseLanelets(const std::string& content, const std::unordered_map<uint64_t, Point2D>& nodes,
-                                   MapServer& mapServer) {
+bool Lanelet2Parser::parseLanelets(
+    const std::string& content,
+    const std::unordered_map<uint64_t, Point2D>& nodes, MapServer& mapServer) {
   // Simplified lanelet parsing
   // Format: <way id="X" ...> with member refs to nodes
 
@@ -140,7 +142,8 @@ bool Lanelet2Parser::parseLanelets(const std::string& content, const std::unorde
   return true;
 }
 
-bool Lanelet2Parser::parseRegulatoryElements(const std::string& content, MapServer& mapServer) {
+bool Lanelet2Parser::parseRegulatoryElements(const std::string& content,
+                                             MapServer& mapServer) {
   // Simplified parsing of traffic lights and signs
   // Format: <relation id="X" ...> with type="regulatory_element"
 

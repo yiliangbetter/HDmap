@@ -12,11 +12,13 @@ double Point2D::distanceTo(const Point2D& other) const {
 }
 
 bool BoundingBox::contains(const Point2D& point) const {
-  return point.x >= min.x && point.x <= max.x && point.y >= min.y && point.y <= max.y;
+  return point.x >= min.x && point.x <= max.x && point.y >= min.y &&
+         point.y <= max.y;
 }
 
 bool BoundingBox::intersects(const BoundingBox& other) const {
-  return !(max.x < other.min.x || min.x > other.max.x || max.y < other.min.y || min.y > other.max.y);
+  return !(max.x < other.min.x || min.x > other.max.x || max.y < other.min.y ||
+           min.y > other.max.y);
 }
 
 double BoundingBox::area() const {

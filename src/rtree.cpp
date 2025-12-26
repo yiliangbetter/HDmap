@@ -61,20 +61,23 @@ std::shared_ptr<RTreeNode> RTree::chooseLeaf(const BoundingBox& bbox) {
     auto minEnlargement = std::numeric_limits<double>::max();
 
     for (size_t i = 0; i < current->entries.size(); ++i) {
-      const auto enlargement{computeEnlargement(current->entries[i].bbox, bbox)};
+      const auto enlargement{
+          computeEnlargement(current->entries[i].bbox, bbox)};
       if (enlargement < minEnlargement) {
         minEnlargement = enlargement;
         bestIdx = i;
       }
     }
 
-    current = std::get<std::shared_ptr<RTreeNode>>(current->entries[bestIdx].data);
+    current =
+        std::get<std::shared_ptr<RTreeNode>>(current->entries[bestIdx].data);
   }
 
   return current;
 }
 
-double RTree::computeEnlargement(const BoundingBox& existing, const BoundingBox& addition) const {
+double RTree::computeEnlargement(const BoundingBox& existing,
+                                 const BoundingBox& addition) const {
   BoundingBox combined;
   combined.min.x = std::min(existing.min.x, addition.min.x);
   combined.min.y = std::min(existing.min.y, addition.min.y);
@@ -176,7 +179,8 @@ void RTree::query(const BoundingBox& bbox, std::vector<Data>& results) const {
   }
 }
 
-void RTree::queryNode(const std::shared_ptr<const RTreeNode>& node, const BoundingBox& bbox,
+void RTree::queryNode(const std::shared_ptr<const RTreeNode>& node,
+                      const BoundingBox& bbox,
                       std::vector<Data>& results) const {
   for (const auto& entry : node->entries) {
     if (!entry.bbox.intersects(bbox)) {
@@ -186,13 +190,16 @@ void RTree::queryNode(const std::shared_ptr<const RTreeNode>& node, const Boundi
     if (node->isLeaf()) {
       results.push_back(entry.data);
     } else {
-      queryNode(std::get<std::shared_ptr<RTreeNode>>(entry.data), bbox, results);
+      queryNode(std::get<std::shared_ptr<RTreeNode>>(entry.data), bbox,
+                results);
     }
   }
 }
 
-void RTree::queryRadius(const Point2D& center, double radius, std::vector<Data>& results) const {
-  const BoundingBox bbox{Point2D(center.x - radius, center.y - radius), Point2D(center.x + radius, center.y + radius)};
+void RTree::queryRadius(const Point2D& center, double radius,
+                        std::vector<Data>& results) const {
+  const BoundingBox bbox{Point2D(center.x - radius, center.y - radius),
+                         Point2D(center.x + radius, center.y + radius)};
   query(bbox, results);
 }
 

@@ -16,10 +16,12 @@ namespace hdmap {
 std::shared_ptr<MapServer> MapServer::instance{};
 std::mutex MapServer::mutex_lock{};
 
-MapServer::MapServer(const MemoryConstraints& constraints) : constraints_(constraints) {
+MapServer::MapServer(const MemoryConstraints& constraints)
+    : constraints_(constraints) {
 }
 
-std::shared_ptr<MapServer> MapServer::getInstance(const MemoryConstraints& constraints) {
+std::shared_ptr<MapServer> MapServer::getInstance(
+    const MemoryConstraints& constraints) {
   if (instance == nullptr) {
     const std::scoped_lock lock{mutex_lock};
     if (instance == nullptr) {
@@ -88,14 +90,16 @@ QueryResult MapServer::queryRegion(const BoundingBox& region) const {
   std::vector<Data> lightResults;
   trafficLightIndex_.query(region, lightResults);
   for (const auto& object : lightResults) {
-    result.trafficLights.push_back(std::get<std::shared_ptr<TrafficLight>>(object));
+    result.trafficLights.push_back(
+        std::get<std::shared_ptr<TrafficLight>>(object));
   }
 
   // Query traffic signs
   std::vector<Data> signResults;
   trafficSignIndex_.query(region, signResults);
   for (const auto& object : signResults) {
-    result.trafficSigns.push_back(std::get<std::shared_ptr<TrafficSign>>(object));
+    result.trafficSigns.push_back(
+        std::get<std::shared_ptr<TrafficSign>>(object));
   }
 
   // return value optimization
@@ -146,7 +150,8 @@ QueryResult MapServer::queryRadius(const Point2D& center, double radius) const {
   return result;
 }
 
-std::optional<std::shared_ptr<Lane>> MapServer::getLaneById(uint64_t laneId) const {
+std::optional<std::shared_ptr<Lane>> MapServer::getLaneById(
+    uint64_t laneId) const {
   auto it = lanes_.find(laneId);
   if (it != lanes_.end()) {
     return it->second;
@@ -154,7 +159,8 @@ std::optional<std::shared_ptr<Lane>> MapServer::getLaneById(uint64_t laneId) con
   return std::nullopt;
 }
 
-std::optional<std::shared_ptr<TrafficLight>> MapServer::getTrafficLightById(uint64_t id) const {
+std::optional<std::shared_ptr<TrafficLight>> MapServer::getTrafficLightById(
+    uint64_t id) const {
   auto it = trafficLights_.find(id);
   if (it != trafficLights_.end()) {
     return it->second;
@@ -162,7 +168,8 @@ std::optional<std::shared_ptr<TrafficLight>> MapServer::getTrafficLightById(uint
   return std::nullopt;
 }
 
-std::optional<std::shared_ptr<TrafficSign>> MapServer::getTrafficSignById(uint64_t id) const {
+std::optional<std::shared_ptr<TrafficSign>> MapServer::getTrafficSignById(
+    uint64_t id) const {
   auto it = trafficSigns_.find(id);
   if (it != trafficSigns_.end()) {
     return it->second;
@@ -170,12 +177,14 @@ std::optional<std::shared_ptr<TrafficSign>> MapServer::getTrafficSignById(uint64
   return std::nullopt;
 }
 
-std::vector<std::shared_ptr<Lane>> MapServer::getNearbyLanes(const Point2D& position, double maxDistance) const {
+std::vector<std::shared_ptr<Lane>> MapServer::getNearbyLanes(
+    const Point2D& position, double maxDistance) const {
   const QueryResult result{queryRadius(position, maxDistance)};
   return result.lanes;
 }
 
-std::optional<std::shared_ptr<Lane>> MapServer::getClosestLane(const Point2D& position) const {
+std::optional<std::shared_ptr<Lane>> MapServer::getClosestLane(
+    const Point2D& position) const {
   // Start with a reasonable search radius
   double searchRadius = 50.0;  // meters
   auto candidates{getNearbyLanes(position, searchRadius)};
@@ -206,11 +215,13 @@ std::optional<std::shared_ptr<Lane>> MapServer::getClosestLane(const Point2D& po
   return closestLane;
 }
 
-std::vector<std::shared_ptr<TrafficLight>> MapServer::getTrafficLightsForLane(uint64_t laneId) const {
+std::vector<std::shared_ptr<TrafficLight>> MapServer::getTrafficLightsForLane(
+    uint64_t laneId) const {
   std::vector<std::shared_ptr<TrafficLight>> result;
 
   for (const auto& [id, light] : trafficLights_) {
-    auto it = std::find(light->controlledLaneIds.begin(), light->controlledLaneIds.end(), laneId);
+    auto it = std::find(light->controlledLaneIds.begin(),
+                        light->controlledLaneIds.end(), laneId);
     if (it != light->controlledLaneIds.end()) {
       result.push_back(light);
     }
@@ -219,11 +230,13 @@ std::vector<std::shared_ptr<TrafficLight>> MapServer::getTrafficLightsForLane(ui
   return result;
 }
 
-std::vector<std::shared_ptr<TrafficSign>> MapServer::getTrafficSignsForLane(uint64_t laneId) const {
+std::vector<std::shared_ptr<TrafficSign>> MapServer::getTrafficSignsForLane(
+    uint64_t laneId) const {
   std::vector<std::shared_ptr<TrafficSign>> result;
 
   for (const auto& [id, sign] : trafficSigns_) {
-    auto it = std::find(sign->affectedLaneIds.begin(), sign->affectedLaneIds.end(), laneId);
+    auto it = std::find(sign->affectedLaneIds.begin(),
+                        sign->affectedLaneIds.end(), laneId);
     if (it != sign->affectedLaneIds.end()) {
       result.push_back(sign);
     }
@@ -261,7 +274,9 @@ size_t MapServer::getMemoryUsage() const {
   }
 
   // R-tree overhead (rough estimate)
-  total += (laneIndex_.size() + trafficLightIndex_.size() + trafficSignIndex_.size()) * 64;
+  total += (laneIndex_.size() + trafficLightIndex_.size() +
+            trafficSignIndex_.size()) *
+           64;
 
   return total;
 }
