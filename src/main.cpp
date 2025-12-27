@@ -1,9 +1,13 @@
 #include <iomanip>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <string>
 #include <utility>
 
 #include "include/map_server.hpp"
+
+constexpr double kSpeedConversionFactor = 3.6;
+const std::string kDefaultMapFile = "data/sample_map.osm";
 
 void printQueryResult(const hdmap::QueryResult& result) {
   std::cout << "Query Results:\n";
@@ -15,8 +19,8 @@ void printQueryResult(const hdmap::QueryResult& result) {
     std::cout << "\n  Lane Details:\n";
     for (const auto& lane : result.lanes) {
       std::cout << "    ID: " << lane->id
-                << ", Points: " << lane->centerline.size()
-                << ", Speed Limit: " << (lane->speedLimit * 3.6) << " km/h\n";
+                << ", Points: " << lane->centerline.size() << ", Speed Limit: "
+                << (lane->speedLimit * kSpeedConversionFactor) << " km/h\n";
     }
   }
 }
@@ -52,14 +56,14 @@ int main(int argc, char** argv) {
       hdmap::MemoryConstraints::defaultConstraints())};
 
   // Load map data
-  std::string mapFile = "data/sample_map.osm";
+  std::string mapFile = kDefaultMapFile;
   if (argc > 1) {
     mapFile = argv[1];
   }
 
   std::cout << "Loading map from: " << mapFile << "\n";
   if (!mapServer->loadFromFile(std::move(mapFile))) {
-    std::cerr << "Failed to load map file!\n";
+    spdlog::error("Failed to load map file!\n");
     return 1;
   }
 

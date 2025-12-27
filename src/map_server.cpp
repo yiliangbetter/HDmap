@@ -9,7 +9,6 @@
 #include "include/lanelet2_parser.hpp"
 
 // yiliang
-// cpplint
 // read and extend test cases
 // customize clang-tidy
 

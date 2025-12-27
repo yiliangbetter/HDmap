@@ -3,16 +3,18 @@
 #include <algorithm>
 #include <fstream>
 #include <memory>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 
 namespace hdmap {
 
-bool Lanelet2Parser::parse(const std::string& filepath, MapServer& mapServer) {
+bool Lanelet2Parser::parse(const std::string filepath, MapServer& mapServer) {
   const std::ifstream file{filepath};
   if (!file.is_open()) {
     lastError_ = "Cannot open file: " + filepath;
+    spdlog::error(lastError_);
     return false;
   }
 

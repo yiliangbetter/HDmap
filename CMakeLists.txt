@@ -44,6 +44,18 @@ add_executable(hdmap_server
 )
 
 target_link_libraries(hdmap_server PRIVATE hdmap_lib)
+# for advanced logging capabilities
+find_package(spdlog QUIET)
+if(NOT spdlog_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.11.0 
+    )
+FetchContent_MakeAvailable(spdlog)
+endif()
+target_link_libraries(hdmap_server PRIVATE spdlog::spdlog)
 
 # Install
 install(TARGETS hdmap_server DESTINATION bin)
